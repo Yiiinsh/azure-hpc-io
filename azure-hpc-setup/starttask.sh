@@ -1,0 +1,1 @@
+/bin/bash -c "sudo yum install openmpi openmpi-devel python-devel -y > /dev/null; sudo env MPICC=/usr/lib64/openmpi/bin/mpicc pip install mpi4py numpy configparser azure-storage"

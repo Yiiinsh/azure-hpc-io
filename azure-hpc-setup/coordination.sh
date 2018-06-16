@@ -1,0 +1,1 @@
+/bin/bash -c "echo $AZ_BATCH_HOST_LIST; echo $AZ_BATCH_TASK_SHARED_DIR; echo $AZ_BATCH_MASTER_NODE;"
