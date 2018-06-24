@@ -21,4 +21,4 @@ def generate_source_file(file_name, length, width):
 		f.write(''.join(str(ch) for ch in data))
 
 if __name__ == '__main__':
-	generate_source_file('test', 1024, 1024)
+	generate_source_file('test', 1024, 10240)
