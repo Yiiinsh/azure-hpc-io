@@ -22,7 +22,7 @@ def bench_cirrus_get_with_posix_io():
 	# MPI envs
 	rank, size, _ = common.get_mpi_env()
 	
-	# Matrics 
+	# Metrics 
 	max_read, min_read, avg_read = common.init_bench_metrics()
 
 	for _ in range(0, int(config_bench['repeat_time'])):
@@ -41,8 +41,9 @@ def bench_cirrus_get_with_posix_io():
 		min_read = min(min_read_time, min_read)
 		avg_read += avg_read_time
 	
-	if 0 == rank:
-		avg_read = round(avg_read / int(config_bench['repeat_time']), 3)
+	avg_read = round(avg_read / int(config_bench['repeat_time']), 3)
+
+	if 0 == rank:	
 		print('-------- Single file, Cirrus Lustre --------')
 		print('-------- Repeat {0} times --------'.format(config_bench['repeat_time']))
 		print('-------- {0} KiB inputs on {1} processes'.format(os.path.getsize(config_bench['source_file']) >> 10, size))

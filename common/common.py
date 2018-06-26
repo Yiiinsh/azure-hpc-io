@@ -49,7 +49,6 @@ def collect_get_bench_metrics(time):
 
 	param:
 	 [float]time : read time for current process
-	 [int]proc_size : size of processors
 
 	return:
 	 [float]max_read : maximum read time for all process
