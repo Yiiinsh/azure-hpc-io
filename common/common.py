@@ -72,6 +72,21 @@ def collect_get_bench_metrics(time):
 
 	return max_read_time[0], min_read_time[0], avg_read_time[0]
 
+def generate_source_file(file_name, size = 1024 * 1024 * 10):
+	'''
+	Generate source file with specified size.
+	Data contained in this file can be parsed to a 2-D array with integer type.
+	
+	File size will be $size Bytes.
+
+	Param:
+	 file_name : target file name
+	 size : size of data in bytes
+	'''
+	data = [0] * size
+	with open(file_name, 'w') as f:
+		f.write(''.join(str(ch) for ch in data))
+
 if __name__ == '__main__':
 	rank, size, proc_name = get_mpi_env()
 	print('Rank {0} of {1}. Processor name {2}'.format(rank, size, proc_name))
