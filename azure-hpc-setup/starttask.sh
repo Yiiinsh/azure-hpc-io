@@ -1,1 +1,1 @@
-/bin/bash -c "sudo yum install openmpi openmpi-devel python-devel -y > /dev/null; sudo env MPICC=/usr/lib64/openmpi/bin/mpicc pip install mpi4py numpy configparser azure-storage"
+/bin/bash -c "sudo yum -y install epel-release; sudo yum -y install python34 python34-devel python34-pip.noarch; sudo yum -y install openmpi openmpi-devel; sudo env MPICC=/usr/lib64/openmpi/bin/mpicc pip3 install mpi4py numpy; sudo pip3 --yes uninstall azure azure-common azure-storage; sudo pip3 install azure-storage"
