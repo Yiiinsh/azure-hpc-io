@@ -27,4 +27,58 @@ Here we specify the cost for **General Purpose v1** accounts on **UK South**. **
 | :------ | :-------| :-------|
 | Any Operations per 10,000 | £0.00027 | £0.0112 |
 
-## Test 
+## Results 
+### File Size
+Experiments run on **5 Nodes, 4 processes** each. 
+
+#### Latency
+| File Size(MiB) | Azure Block Blob | Azure File |
+| :------ | :-------| :-------|
+| 1 |  |  |
+| 2 |  |  |
+| 4 |  |  |
+| 8 |  |  |
+| 16 |  |  |
+| 32 |  |  |
+| 64 |  |  |
+| 128 |  |  |
+| 256 |  |  |
+| 512 |  |  |
+| 1024 |  |  |
+
+#### Bandwidth
+| File Size(MiB) | Azure Block Blob | Azure File |
+| :------ | :-------| :-------|
+| 1 |  |  |
+| 2 |  |  |
+| 4 |  |  |
+| 8 |  |  |
+| 16 |  |  |
+| 32 |  |  |
+| 64 |  |  |
+| 128 |  |  |
+| 256 |  |  |
+| 512 |  |  |
+| 1024 |  |  |
+
+### Cores per nodes
+Experiments run on **20** processes with file size fixed at 64 MiB.
+
+#### Latency
+| Procs / Node | Azure Block Blob | Azure File |
+| :------ | :-------| :-------|
+| 1 |  |  |
+| 2 |  |  |
+| 4 |  |  |
+| 8 |  |  |
+
+#### Bandwidth
+| Procs / Node | Azure Block Blob | Azure File |
+| :------ | :-------| :-------|
+| 1 |  |  |
+| 2 |  |  |
+| 4 |  |  |
+| 8 |  |  |
+
+### Number of processes
+TBD.
