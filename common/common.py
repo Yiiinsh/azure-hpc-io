@@ -2,6 +2,7 @@
 '''
 Common tools for azure-hpc-io benchmarking
 '''
+
 import sys, configparser
 import numpy as np
 from mpi4py import MPI
@@ -86,10 +87,3 @@ def generate_source_file(file_name, size = 1024 * 1024 * 10):
 	data = [0] * size
 	with open(file_name, 'w') as f:
 		f.write(''.join(str(ch) for ch in data))
-
-if __name__ == '__main__':
-	rank, size, proc_name = get_mpi_env()
-	print('Rank {0} of {1}. Processor name {2}'.format(rank, size, proc_name))
-
-	max_read, min_read, avg_read = init_bench_metrics()
-	print(max_read, min_read, avg_read)

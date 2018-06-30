@@ -15,9 +15,12 @@ def bench():
 	config_bench = common.get_config(config_file, 'BENCH')
 
 	# MPI envs
-	rank, size, proc_name = common.get_mpi_env()
-	print('Rank {0} of {1}. Proc name:{2}'.format(rank, size, proc_name))
+	if bool(config_bench['show_mpi_env']):
+		rank, size, proc_name = common.get_mpi_env()
+		print('Rank {0} of {1}. Proc name:{2}'.format(rank, size, proc_name))
+		print()
 
+	# Benchmarking
 	bench_targets = config_bench['bench_targets'].split(',')
 	for target in bench_targets:
 		if target == 'cirrus':
@@ -25,8 +28,7 @@ def bench():
 		elif target == 'azure_blob':
 			benchblob.bench_blob_get_with_single_blob_single_container()
 		elif target == 'azure_file':
-			benchfile.bench_file_get()
+			benchfile.bench_file_get_with_single_file_single_share()
 	
-
 if __name__ == '__main__':
 	bench()
