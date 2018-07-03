@@ -76,7 +76,7 @@ def task_submit():
 				print('Mapping {} to {}'.format(blob_url, file_path))
 				common_resource_files.append(ResourceFile(blob_url, file_path, file_mode='0775'))
 
-	command = '/usr/lib64/openmpi/bin/mpirun -mca btl_tcp_if_include eth0 -oversubscribe -n {0} -host $AZ_BATCH_HOST_LIST -wd $AZ_BATCH_TASK_SHARED_DIR python3 $AZ_BATCH_TASK_SHARED_DIR/bench.py'.format(config_azure['task_number_of_procs'])
+	command = '/usr/lib64/openmpi/bin/mpirun -mca btl_tcp_if_include eth0 -oversubscribe -n {0} -host $AZ_BATCH_HOST_LIST -wd $AZ_BATCH_TASK_SHARED_DIR python36 $AZ_BATCH_TASK_SHARED_DIR/bench.py'.format(config_azure['task_number_of_procs'])
 	coordination_command = '/bin/bash -c "echo $AZ_BATCH_HOST_LIST; echo $AZ_BATCH_TASK_SHARED_DIR; echo $AZ_BATCH_MASTER_NODE;"'
 	multi_instance_settings = MultiInstanceSettings(
 		coordination_command_line=coordination_command,
