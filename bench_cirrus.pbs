@@ -1,0 +1,12 @@
+#!/bin/bash --login
+#PBS -A [budget id]
+#PBS -l select=1
+#PBS -l walltime=00:60:00
+
+cd $PBS_O_WORKDIR
+
+echo "Starting job $PBS_JOBID at `date`"
+
+mpirun -n 20 python3 bench.py
+
+echo "Finished job $PBS_JOBID at `date`"
