@@ -94,8 +94,6 @@ def task_submit():
 		user_identity=user
 	)
 
-	print('Deleting previous benchtask on job [{0}]...'.format(config_azure['job_id']))
-	batch_service.task.delete(config_azure['job_id'], 'benchtask')
 	print('Adding bench tasks to job [{0}]...'.format(config_azure['job_id']))
 	batch_service.task.add(config_azure['job_id'], task)
 
