@@ -42,60 +42,62 @@ Here we specify the cost for **General Purpose v1** accounts on **UK South**. **
 Experiments run on **5 Nodes, 4 processes** each. 
 
 #### Latency
-| File Size(MiB) | Azure Block Blob (s) | Azure File (s) |
-| :------ | :-------| :-------|
-| 1 | 0.035 | 0.049 |
-| 2 | 0.053 | 0.068 |
-| 4 | 0.101 | 0.104 |
-| 8 | 0.165 | 0.184 |
-| 16 | 0.304 | 0.318 |
-| 32 | 0.594 | 0.646 |
-| 64 | 1.253 | 1.222 |
-| 128 | 2.457 | 2.266 |
-| 256 | 4.807 | 4.433 |
-| 512 | 9.549 | 9.511 |
-| 1024 | 18.350 | 16.442 |
+| File Size(MiB) | Azure Block Blob (s) | Azure File (s) | Cirrus (s) |
+| :------ | :-------| :-------| :-------|
+| 1 | 0.035 | 0.049 |  |
+| 2 | 0.053 | 0.068 |  |
+| 4 | 0.101 | 0.104 |  |
+| 8 | 0.165 | 0.184 |  |
+| 16 | 0.304 | 0.318 |  |
+| 32 | 0.594 | 0.646 |  |
+| 64 | 1.253 | 1.222 |  |
+| 128 | 2.457 | 2.266 |  |
+| 256 | 4.807 | 4.433 |  |
+| 512 | 9.549 | 9.511 |  |
+| 1024 | 18.350 | 16.442 | |
 
 #### Bandwidth
-| File Size(MiB) | Azure Block Blob (MiB) | Azure File (MiB) |
-| :------ | :-------| :-------|
-| 1 | 28.571 | 20.408 |
-| 2 | 37.736 | 29.412 |
-| 4 | 39.604 | 38.462 |
-| 8 | 48.485 | 43.478 |
-| 16 | 52.632 | 50.314 |
-| 32 | 53.872 | 49.536 |
-| 64 | 51.077 | 52.373 |
-| 128 | 52.096 | 56.487 |
-| 256 | 53.256 | 57.749 |
-| 512 | 53.618 | 60.157 |
-| 1024 | 55.804 | 62.280 |
+| File Size(MiB) | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
+| :------ | :-------| :-------| :-------|
+| 1 | 28.571 | 20.408 |  |  
+| 2 | 37.736 | 29.412 |  |
+| 4 | 39.604 | 38.462 |  |
+| 8 | 48.485 | 43.478 |  |
+| 16 | 52.632 | 50.314 |  |
+| 32 | 53.872 | 49.536 |  |
+| 64 | 51.077 | 52.373 |  |
+| 128 | 52.096 | 56.487 |  |
+| 256 | 53.256 | 57.749 |  |
+| 512 | 53.618 | 60.157 |  |
+| 1024 | 55.804 | 62.280 |  |
+
+![InputBenchBandwidth](doc/img/InputBenchBandwidth.jpg)
 
 ### Nodes
 Experiments run on **20** processes with file size fixed at 64 MiB.
 
 #### Latency
-| Procs/Node | Azure Block Blob (s) | Azure File (s) |
-| :------ | :-------| :-------|
-| 1 |  |  |
-| 2 |  |  |
-| 4 | 1.253 | 1.222 |
-| 6 |  |  |
-| 8 |  |  |
+| Procs/Node | Nodes | Azure Block Blob (s) | Azure File (s) | Cirrus (s) |
+| :------ | :-------| :-------| :-------| :-------|
+| 1 | 20 | 1.274 | 1.208 |  |
+| 2 | 10 | 1.218 | 1.194 |  |
+| 4 | 5 | 1.271 | 1.188 |  |
+| 6 | 4 |  |  |  |
+| 8 | 3 |  |  |  |
 
 #### Bandwidth
-| Procs/Node | Azure Block Blob (MiB) | Azure File (MiB) |
-| :------ | :-------| :-------|
-| 1 |  |  |
-| 2 |  |  |
-| 4 | 51.077 | 52.373 |
-| 6 |  |  |
-| 8 |  |  |
+| Procs/Node | Nodes | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
+| :------ | :-------| :-------| :-------| :-------|
+| 1 | 20 | 50.235 | 52.980 |  |
+| 2 | 10 | 52.545 | 53.601 |  |
+| 4 | 5 | 50.354 | 53.872 |  |
+| 6 | 4 |  |  |  |
+| 8 | 3 |  |  |  |
 
 ### Number of processes
 TBD.
 
-### Improvments
+### Potential Improvments
 Master get & bcast; Multiple containers; Block sizes etc.
 
 ## Output
