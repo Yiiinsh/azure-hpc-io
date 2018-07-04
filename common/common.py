@@ -84,6 +84,5 @@ def generate_source_file(file_name, size = 1024 * 1024 * 10):
 	 file_name : target file name
 	 size : size of data in bytes
 	'''
-	data = [0] * size
 	with open(file_name, 'w') as f:
-		f.write(''.join(str(ch) for ch in data))
+		f.write('0' * size)
