@@ -32,7 +32,7 @@ def bench_file_get_with_single_file_single_share():
 	for _ in range(0, int(config_bench['repeat_time'])):
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		data = file_service.get_file_to_bytes(config_azure['source_share_name'], None, config_azure['source_file_name'])
+		file_service.get_file_to_bytes(config_azure['source_share_name'], None, config_azure['source_file_name'])
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
@@ -58,4 +58,5 @@ def bench_file_get_with_single_file_single_share():
 		print('Bandwidth: {0} MiB/s'.format(bandwidth))
 		print()
 	
+	data = file_service.get_file_to_bytes(config_azure['source_share_name'], None, config_azure['source_file_name'])
 	return data

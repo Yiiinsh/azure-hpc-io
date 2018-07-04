@@ -32,7 +32,7 @@ def bench_blob_get_with_single_blob_single_container():
 	for _ in range(0, int(config_bench['repeat_time'])):
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		data = block_blob_service.get_blob_to_bytes(config_azure['source_container_name'], config_azure['source_blob_name'])
+		block_blob_service.get_blob_to_bytes(config_azure['source_container_name'], config_azure['source_blob_name'])
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
@@ -58,4 +58,5 @@ def bench_blob_get_with_single_blob_single_container():
 		print('Bandwidth: {0} MiB/s'.format(bandwidth))
 		print()
 
+	data = block_blob_service.get_blob_to_bytes(config_azure['source_container_name'], config_azure['source_blob_name'])
 	return data
