@@ -1,12 +1,14 @@
 #!/bin/bash --login
 #PBS -A [budget id]
-#PBS -l select=1
-#PBS -l walltime=00:60:00
+#PBS -N bench
+#PBS -l select=5:ncpus=36
+#PBS -l place=scatter:excl
+#PBS -l walltime=00:10:00
 
 cd $PBS_O_WORKDIR
 
 echo "Starting job $PBS_JOBID at `date`"
 
-mpirun -n 20 python3 bench.py
+mpiexec_mpt -n 20 -ppn 4 python3 bench.py > bench_result
 
 echo "Finished job $PBS_JOBID at `date`"
