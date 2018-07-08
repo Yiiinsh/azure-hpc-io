@@ -1,2 +1,0 @@
-# Start Task while Cluster Creation
-/bin/bash -c "sudo yum -y install epel-release; sudo yum -y install python36 python36-devel python36-tools; sudo python36 -m ensurepip; sudo yum -y install openmpi openmpi-devel; sudo env MPICC=/usr/lib64/openmpi/bin/mpicc pip3 install mpi4py numpy; sudo pip3 --yes uninstall azure azure-common azure-storage; sudo pip3 install azure-storage"
