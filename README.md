@@ -38,23 +38,11 @@ Here we specify the cost for **General Purpose v1** accounts on **UK South**. **
 | azure-storage | 0.36.0 | 0.36.0 |
 
 ## Input
+### Overview
+This section reveals the test result on inputs benchmarking. 'Single File, Multiple Readers' pattern is used in this test. Every processes downloads the entire blob/file from cloud native storage in bytes. The length of data is restricted to the available memory for the process. Results for running on a lustre file system within Cirrus are also attached.
+
 ### File Size
 Experiments run on **5 Nodes, 4 processes** each. 
-
-#### Latency
-| File Size(MiB) | Azure Block Blob (s) | Azure File (s) | Cirrus (s) |
-| :------ | :-------| :-------| :-------|
-| 1 | 0.035 | 0.049 | 0.003 |
-| 2 | 0.053 | 0.068 | 0.002 |
-| 4 | 0.101 | 0.104 | 0.010 |
-| 8 | 0.165 | 0.184 | 0.010 |
-| 16 | 0.304 | 0.318 | 0.04 |
-| 32 | 0.594 | 0.646 | 0.029 |
-| 64 | 1.253 | 1.222 | 0.071 |
-| 128 | 2.457 | 2.266 | 0.14 |
-| 256 | 4.807 | 4.433 | 0.27 |
-| 512 | 9.549 | 9.511 | 0.527 |
-| 1024 | 18.350 | 16.442 | 1.223 |
 
 #### Bandwidth
 | File Size(MiB) | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
@@ -71,19 +59,8 @@ Experiments run on **5 Nodes, 4 processes** each.
 | 512 | 53.618 | 60.157 | 971.537 |
 | 1024 | 55.804 | 62.280 | 837.285 |
 
-![InputBenchBandwidth](doc/img/InputBenchBandwidth.jpg)
-
 ### Nodes
 Experiments run on **20** processes with file size fixed at 64 MiB.
-
-#### Latency
-| Procs/Node | Nodes | Azure Block Blob (s) | Azure File (s) | Cirrus (s) |
-| :------ | :-------| :-------| :-------| :-------|
-| 1 | 20 | 1.274 | 1.208 | 0.083 |
-| 2 | 10 | 1.218 | 1.194 | 0.055 |
-| 4 | 5 | 1.271 | 1.188 | 0.058 |
-| 6 | 4 |  |  | 0.062 |
-| 8 | 3 |  |  | 0.068 |
 
 #### Bandwidth
 | Procs/Node | Nodes | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
@@ -100,4 +77,42 @@ TBD.
 ### Potential Improvments
 Master get & bcast; Multiple containers; Block sizes etc.
 
+### Analysis
+
 ## Output
+### Overview
+This section presents the result on outputs benchmarking. 'Single file, Multiple Writers' pattern is used in this test and each process will update a single section of the whole file. Sections is divided evenly across processes. Results for running on a lustre file system within Cirrus are also attached.
+
+Since cloud native storage is not support for range writing. So both optimistic concurrent writing and pessmistic concurrent writing are used.
+
+### File Size
+Experiments run on **5 Nodes, 4 processes** each.
+
+| File Size(MiB) | Blob Optimistic | Blob Pessimistic | Blob without Lock | File Optmistic | File Pessimistic | File without Lock | Cirrus |
+| :------ | :-------| :-------| :-------| :-------| :-------| :-------| :-------|
+| 1    |  |  |  |  |  |  |  |
+| 2    |  |  |  |  |  |  |  |
+| 4    |  |  |  |  |  |  |  |
+| 8    |  |  |  |  |  |  |  |
+| 16   |  |  |  |  |  |  |  |
+| 32   |  |  |  |  |  |  |  |
+| 64   |  |  |  |  |  |  |  |
+| 128  |  |  |  |  |  |  |  |
+| 256  |  |  |  |  |  |  |  |
+| 512  |  |  |  |  |  |  |  |
+| 1024 |  |  |  |  |  |  |  |
+
+
+#### Bandwidth
+
+### Nodes
+Experiments run on **20** processes with file size fixed at 64 MiB.
+
+#### Bandwidth
+
+## Number of processes
+TBD.
+
+### Potential Improvments
+
+### Analysis
