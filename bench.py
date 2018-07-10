@@ -21,14 +21,21 @@ def bench():
 		print()
 
 	# Benchmarking
+	bench_items = config_bench['bench_items'].split(',')
 	bench_targets = config_bench['bench_targets'].split(',')
-	for target in bench_targets:
-		if target == 'cirrus':
-			benchcirrus.bench_cirrus_get_with_posix_io()
-		elif target == 'azure_blob':
-			benchblob.bench_blob_get_with_single_blob_single_container()
-		elif target == 'azure_file':
-			benchfile.bench_file_get_with_single_file_single_share()
+	for item in bench_items:
+		if item == 'input':
+			for target in bench_targets:
+				if target == 'cirrus':
+					benchcirrus.bench_cirrus_get_with_posix_io()
+				elif target == 'azure_blob':
+					benchblob.bench_blob_get_with_single_blob_single_container()
+				elif target == 'azure_file':
+					benchfile.bench_file_get_with_single_file_single_share()
+		elif item == 'output':
+			for target in bench_targets:
+				if target == 'azure_blob':
+					benchblob.bench_blcok_blob_write_with_single_blob_single_container()
 	
 if __name__ == '__main__':
 	bench()
