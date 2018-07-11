@@ -73,7 +73,7 @@ Experiments run on **20** processes with file size fixed at 64 MiB.
 TBD.
 
 ### Potential Improvments
-Master get & bcast; Multiple containers; Block sizes etc.
+AsyncI/O & Get range; Multiple containers; Block sizes etc.
 
 ### Analysis
 
