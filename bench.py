@@ -35,7 +35,13 @@ def bench():
 		elif item == 'output':
 			for target in bench_targets:
 				if target == 'azure_blob':
-					benchblob.bench_blcok_blob_write_with_single_blob_single_container()
+					benchblob.bench_block_blob_write_with_single_blob_single_container()
+
+					benchblob.bench_block_blob_write_with_multiple_blob_single_container()
+				if target == 'azure_file':
+					benchfile.bench_file_write_with_single_file_single_share()
+
+					benchfile.bench_file_write_with_multiple_files_single_share()
 	
 if __name__ == '__main__':
 	bench()
