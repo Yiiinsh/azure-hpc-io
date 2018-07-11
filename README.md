@@ -44,7 +44,6 @@ This section reveals the test result on inputs benchmarking. 'Single File, Multi
 ### File Size
 Experiments run on **5 Nodes, 4 processes** each. 
 
-#### Bandwidth
 | File Size(MiB) | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
 | :------ | :-------| :-------| :-------|
 | 1 | 28.571 | 20.408 | 333.333 |  
@@ -62,7 +61,6 @@ Experiments run on **5 Nodes, 4 processes** each.
 ### Nodes
 Experiments run on **20** processes with file size fixed at 64 MiB.
 
-#### Bandwidth
 | Procs/Node | Nodes | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
 | :------ | :-------| :-------| :-------| :-------|
 | 1 | 20 | 50.235 | 52.980 | 771.084 |
@@ -89,7 +87,6 @@ Experiments run on **5 Nodes, 4 processes** each.
 #### Single File, Multiple Writers
 Demonstrations on how to do SFMW pattern on Azure can be found in [Blob](doc/img/blobsfmw.jpg) and [File](doc/img/filesfmw.jpg)
 
-#### Bandwidth
 | Size(MiB) per Proc | Total Size(MiB) | Blob(MiB/s) | File(MiB/s) | Cirrus(MiB/s) |
 | :------ | :-------| :-------| :-------| :-------|
 | 1    |    20 | 111.111 | 133.333 |  |
@@ -104,7 +101,6 @@ Demonstrations on how to do SFMW pattern on Azure can be found in [Blob](doc/img
 | 512  | 10240 | 515.039 | 340.143 |  |
 
 #### Multiple Files, Multiple Writers
-#### Bandwidth
 | Size(MiB) per Proc | Total Size(MiB) | Blob(MiB/s) | File(MiB/s) | Cirrus(MiB/s) |
 | :------ | :-------| :-------| :-------| :-------|
 | 1    |     20 | 243.902 | 139.860 |  |
@@ -130,5 +126,6 @@ Experiments run on **20** processes with file size fixed at 64 MiB.
 TBD.
 
 ### Potential Improvments
+Compression & Metadata for management
 
 ### Analysis
