@@ -79,11 +79,11 @@ def bench_block_blob_write_with_single_blob_single_container():
 	if write_size_per_rank % blob_block_limit:
 		block_size += 1
 	data = [None for i in range(0, block_size)]
-	for idx, section in enumerate(data):
-		if idx == block_size - 1 and not write_size_per_rank % blob_block_limit == 0:
+	for idx, _ in enumerate(data):
+		if idx == block_size - 1 and write_size_per_rank % blob_block_limit:
 			data[idx] = bytes( rank for i in range(0, (write_size_per_rank % blob_block_limit) << 20 ) ) # if last section doesn't fill in all the block
 		else:
-			data[idx] = bytes(rank for i in range(0, blob_block_limit << 20))
+			data[idx] = bytes( rank for i in range(0, blob_block_limit << 20) )
 	
 	# Metrics
 	avg_write_per_rank = 0 # Average write time for each rank putting their own blocks
@@ -96,7 +96,7 @@ def bench_block_blob_write_with_single_blob_single_container():
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
 		for idx, content in enumerate(data):
-			block_id = '{:0<5}-{:0>5}'.format(rank, idx)
+			block_id = '{:0>5}-{:0>5}'.format(rank, idx)
 			block_blob_service.put_block(config_azure['source_container_name'], config_azure['output_blob_name'], content, block_id)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()

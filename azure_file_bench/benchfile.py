@@ -81,7 +81,7 @@ def bench_file_write_with_single_file_single_share():
 		chunk_size += 1
 	data = [None for i in range(0, chunk_size)]
 	for idx, section in enumerate(data):
-		if idx == chunk_size - 1 and not write_size_per_rank % chunk_limit == 0:
+		if idx == chunk_size - 1 and write_size_per_rank % chunk_limit:
 			data[idx] = bytes(rank for i in range(0, (write_size_per_rank % chunk_limit) << 20)) # if last section doesn't fill in all the chunks
 		else:
 			data[idx] = bytes(rank for i in range(0, chunk_limit << 20))
