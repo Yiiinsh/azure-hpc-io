@@ -42,6 +42,8 @@ def bench():
 					benchfile.bench_file_write_with_single_file_single_share()
 
 					benchfile.bench_file_write_with_multiple_files_single_share()
+				elif target == 'cirrus':
+					benchcirrus.bench_cirrus_write_with_multiple_files_multiple_writers()
 	
 if __name__ == '__main__':
 	bench()

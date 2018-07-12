@@ -15,10 +15,6 @@ config_bench = common.get_config(config_file, 'BENCH')
 # MPI envs
 rank, size, _ = common.get_mpi_env()
 
-# Azure
-file_service = FileService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
-file_service.get_share_acl(config_azure['source_share_name'])
-
 def bench_file_get_with_single_file_single_share():
 	'''
 	Benchmarking File get with multiple access on a single file within a single share
@@ -26,6 +22,10 @@ def bench_file_get_with_single_file_single_share():
 	Return:
 	 type[] : source stream
 	'''
+	# Azure
+	file_service = FileService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	file_service.get_share_acl(config_azure['source_share_name'])
+
 	# Metrics
 	max_read, min_read, avg_read = common.init_bench_metrics()
 
@@ -72,6 +72,10 @@ def bench_file_write_with_single_file_single_share():
 	
 	Writing size per rank is defined in the config.ini
 	'''
+	# Azure
+	file_service = FileService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	file_service.get_share_acl(config_azure['source_share_name'])
+
 	# Data prepare
 	write_size_per_rank = int(config_bench['write_size_per_rank']) # in MiB
 	chunk_limit = int(config_azure['file_chunk_limit']) # in MiB
@@ -149,6 +153,10 @@ def bench_file_write_with_multiple_files_single_share():
 	Data from different ranks are stored in different blobs
 
 	'''
+	# Azure
+	file_service = FileService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	file_service.get_share_acl(config_azure['source_share_name'])
+
 	# Data prepare
 	write_size_per_rank = int(config_bench['write_size_per_rank']) << 20 # in bytes
 	data = bytes( rank for i in range(0, write_size_per_rank) )
@@ -194,6 +202,10 @@ def _check_single_file_correctness():
 	Check the correctness of the file after write
 
 	'''
+	# Azure
+	file_service = FileService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	file_service.get_share_acl(config_azure['source_share_name'])
+
 	# Check file size
 	write_size_per_rank = int(config_bench['write_size_per_rank']) << 20 # in byte
 	file_size = file_service.get_file_properties(config_azure['source_share_name'], None, config_azure['output_file_name']).properties.content_length

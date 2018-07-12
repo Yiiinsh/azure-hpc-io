@@ -15,15 +15,15 @@ config_bench = common.get_config(config_file, 'BENCH')
 # MPI envs
 rank, size, _ = common.get_mpi_env()
 
-# Azure
-block_blob_service = BlockBlobService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
-block_blob_service.get_container_acl(config_azure['source_container_name'])
-
 def bench_blob_get_with_single_blob_single_container():
 	'''
 	Benchmarking Blob get with multiple access on a single blob within a single container
 
 	'''
+	# Azure
+	block_blob_service = BlockBlobService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	block_blob_service.get_container_acl(config_azure['source_container_name'])
+	
 	# Metrics
 	max_read, min_read, avg_read = common.init_bench_metrics()
 
@@ -71,6 +71,10 @@ def bench_block_blob_write_with_single_blob_single_container():
 	Format of global block ids: 00002-00005, first section represents for the rank and second section represents block id written by the rank
 
 	'''
+	# Azure
+	block_blob_service = BlockBlobService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	block_blob_service.get_container_acl(config_azure['source_container_name'])
+	
 	# Data prepare
 	write_size_per_rank = int(config_bench['write_size_per_rank']) # in MiB
 	blob_block_limit = int(config_azure['blob_block_limit']) # in MiB
@@ -157,6 +161,10 @@ def bench_block_blob_write_with_multiple_blob_single_container():
 	Data from different ranks are stored in different blobs
 
 	'''
+	# Azure
+	block_blob_service = BlockBlobService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	block_blob_service.get_container_acl(config_azure['source_container_name'])
+	
 	# Data prepare
 	write_size_per_rank = int(config_bench['write_size_per_rank']) << 20 # in Bytes
 	data = bytes( rank for i in range(0, write_size_per_rank))
@@ -202,6 +210,10 @@ def _check_single_blob_correctness():
 	Check the correctness of the blob after write
 
 	'''
+	# Azure
+	block_blob_service = BlockBlobService(account_name=config_azure['account_name'], account_key=config_azure['account_key'])
+	block_blob_service.get_container_acl(config_azure['source_container_name'])
+	
 	# Check file size
 	write_size_per_rank = int(config_bench['write_size_per_rank']) << 20 # in Byte
 	file_size = block_blob_service.get_blob_properties(config_azure['source_container_name'], config_azure['output_blob_name']).properties.content_length
