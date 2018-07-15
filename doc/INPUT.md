@@ -74,3 +74,10 @@ As is restricted by the VM's memory, for each downloads we can only get the inpu
 | 1024 | 55.804 | 62.280 |  837.285 |
 
 ### Extended to Larger File Sizes
+| File Size(TiB) | Blob(TiB/s) | File(TiB/s) | Cirrus(TiB/s) |
+| :------ | :-------| :-------| :-------|
+| 0.50 | 28.571 | 20.408 |  333.333 |  
+| 1.00 | 28.571 | 20.408 |  333.333 |  
+| 2.25 | 37.736 | 29.412 | 1000.000 |
+| 3.50 | 39.604 | 38.462 |  400.000 |
+| 4.75 | 48.485 | 43.478 |  800.000 |

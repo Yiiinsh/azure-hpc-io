@@ -19,8 +19,8 @@ def bench():
 	config_azure = config['AZURE']
 
 	# MPI envs
+	rank, size, proc_name = common.get_mpi_env()
 	if bool(config_bench['show_mpi_env']):
-		rank, size, proc_name = common.get_mpi_env()
 		print('Rank {0} of {1}. Proc name:{2}'.format(rank, size, proc_name))
 		print()
 
@@ -28,16 +28,23 @@ def bench():
 	bench_items = config_bench['bench_items']
 	bench_targets = config_bench['bench_targets']
 	repeat_times = int(config_bench['repeat_time'])
+	bench_pattern = config_bench['bench_pattern']
 
 	# Benchmarking
 	if bench_targets == 'azure_blob':
 		azure_blob_bench = AzureBlobBench(config_azure['account_name'], config_azure['account_key'], [config_azure['input_container_name']])
 
 		if bench_items == 'input':
-			for _ in range(0, repeat_times):
-				max_time, min_time, avg_time = azure_blob_bench.bench_inputs_with_single_blob(config_azure['input_container_name'], config_azure['input_blob_name'])
-				if 0 == MPI.COMM_WORLD.Get_rank():
-					print(max_time, min_time, avg_time)
+			if bench_pattern == 'SFMR':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time = azure_blob_bench.bench_inputs_with_single_blob(config_azure['input_container_name'], config_azure['input_blob_name'])
+					if 0 == rank:
+						print(max_time, min_time, avg_time)
+			elif bench_pattern == 'MFMR':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time = azure_blob_bench.bench_inputs_with_multiple_blobs(config_azure['input_container_name'], config_azure['input_blob_name'])
+					if 0 == rank:
+						print(max_time, min_time, avg_time)
 	
 if __name__ == '__main__':
 	bench()

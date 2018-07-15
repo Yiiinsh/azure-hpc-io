@@ -1,5 +1,5 @@
 from mpi4py import MPI
-from azure.storage.blob import BlockBlobService
+from azure.storage.blob import BlockBlobService, BlockListType
 from common import common
 
 class AzureBlobBench(object):
@@ -30,24 +30,192 @@ class AzureBlobBench(object):
 
 	__repr__ = __str__
 
-	def bench_inputs_with_single_blob(self, container_name, blob_name):
+	def bench_inputs_with_single_blob(self, container_name, blob_name, section_limit = 1024):
 		'''
 		Benchmarking Blob get with multiple access on a single blob within a single container.
-		Blob size should be loadable.
+		
+		If the size of source blob is larger than limits, the get operation will be divided into serval sections, with getting size of section_limit each time.
+		
+		For benchmarking on a single large blob, the input shoud be set to a proper size that can be divided by MPI_SIZE * section_limit
 
 		param:
 		 container_name: Blob container
 		 blob_name: Blob name
+		 section_limit: Limit of sections for each get operation in MiB
 		
 		return:
 		 max_read: maximum read time
 		 min_read: minimum read time
 		 avg_read: average read time
 		'''
+		# Check sections to be get
+		blob_size = self.__block_blob_service.get_blob_properties(container_name, blob_name).properties.content_length # in bytes
+		blob_size_in_mib = blob_size >> 20 # in MiB
+		section_limit_in_bytes = section_limit << 20 # in bytes
+		section_count = 0 # get operations to be performed
+		if blob_size_in_mib <= section_limit:
+			section_count = 1
+		else:
+			if blob_size_in_mib % self.__mpi_size:
+				raise ValueError('blob size cannot be divided to')
+			section_count = blob_size_in_mib // self.__mpi_size
+			if section_count % section_limit:
+				section_count = section_count // section_limit + 1
+			else:
+				section_count = section_count // section_limit
+
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		self.__block_blob_service.get_blob_to_bytes(container_name, blob_name)
+		if section_count == 1:
+			self.__block_blob_service.get_blob_to_bytes(container_name, blob_name)
+		else:
+			for section in range(0, section_count):
+				range_start = section * (self.__mpi_size * section_limit_in_bytes) + self.__mpi_rank * section_limit_in_bytes
+				range_end = range_start + section_limit_in_bytes - 1
+				if range_start > blob_size:
+					break
+				self.__block_blob_service.get_blob_to_bytes(container_name, blob_name, start_range=range_start, end_range=range_end)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
-		return common.collect_input_bench_metrics(end - start)
+		return common.collect_bench_metrics(end - start)
+
+	def bench_inputs_with_multiple_blobs(self, container_name, blob_name):
+		'''
+		Benchmarking Blob get with multiple access on multiple processes within a single container.
+		Blob size should be valid.
+		Blobs corresponding to each processes should be named after the pattern of blob_name + rank
+
+		param:
+		 container_name: Blob container
+		 blob_name: Blob name
+
+		return:
+		 max_read: maximum read time
+		 min_read: minimum read time
+		 avg_read: average read time
+		'''
+		proc_blob_name = blob_name + '{:0>5}'.format(MPI.COMM_WORLD.Get_rank())
+
+		return self.bench_inputs_with_single_blob(container_name, proc_blob_name)
+
+	def bench_outputs_with_single_blob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 100):
+		'''
+		Benchmarking Block Blob write with multiple access on a single blob within a single container
+		
+		Data from different rank is stored in different blocks
+
+		Pattern of global block ids: 00002-00005, first section represents for the rank while second section represents block id written by the rank
+
+		The process is :
+		1. Each rank write blocks to Azure
+		2. MPI_Barrier() to wait for all ranks
+		3. Get uncommited block list, rearrange for order
+		4. Commit
+
+		param:
+		 container_name: Azure container name
+		 blob_name: Blob to be written to
+		 output_per_rank: size of outputs per rank, in MiB
+		 block_limit: limits of block size, in MiB
+
+		return:
+		 max_write_time: maximum writing time
+		 min_write_time: minimum writing time
+		 avg_write_time: average writing time
+		 postprocessing_time: post processing time, composed of step 3 and step 4
+		'''
+		# Data prepare
+		block_limit_in_bytes = block_limit << 20 # to bytes
+		block_count = output_per_rank // block_limit
+		if output_per_rank % block_limit:
+			block_count += 1
+
+		data = [None for i in range(0, block_count)]
+		for idx, _ in enumerate(data):
+			if idx == block_count - 1 and output_per_rank % block_limit:
+				last_block_size = (output_per_rank % block_limit) << 20 # in bytes
+				data[idx] = bytes( self.__mpi_rank for i in range(0, last_block_size) )
+			else:
+				data[idx] = bytes( self.__mpi_rank for i in range(0, block_limit_in_bytes) )
+
+		# PUT blocks
+		MPI.COMM_WORLD.Barrier()
+		start = MPI.Wtime()
+		for idx, content in enumerate(data):
+			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, idx)
+			self.__block_blob_service.put_block(container_name, blob_name, content, block_id)
+		end = MPI.Wtime()
+		MPI.COMM_WORLD.Barrier()
+		max_write, min_write, avg_write = common.collect_bench_metrics(end - start)
+
+		if 0 == self.__mpi_rank:
+			start_postprocessing = MPI.Wtime()
+			# Get block list to be committed and rearrange
+			block_list = self.__block_blob_service.get_block_list(container_name, blob_name, block_list_type=BlockListType.All).uncommitted_blocks
+			block_list.sort(key = lambda block:block.id)
+
+			# Commmit
+			self.__block_blob_service.put_block_list(container_name, blob_name, block_list)
+			end_postprocessing = MPI.Wtime()
+
+		# TODO: Every processes check their own part
+
+		return max_write, min_write, avg_write, end_postprocessing - start_postprocessing
+
+	def bench_outputs_with_multiple_blob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 1024):
+		'''
+		Benchmarking Block Blob write with multiple access on multiple blobs within a single container
+		
+		Data from different rank is stored in different blobs.
+
+		Pattern of output blobs is: blob_name + 00001 where the second parts represents for the rank of the process 
+
+		Format of global block ids: 00002-00005, first section represents for the rank and second section represents block id written by the rank
+
+		param:
+		 container_name: Azure container name
+		 blob_name: Blob to be written to
+		 output_per_rank: size of outputs per rank, in MiB. Should be able to be divided by section_limit
+		 block_limit: limits of blocks, in MiB
+
+		return:
+		 max_write: maximum write time
+		 min_write: minimum write time 
+		 avg_wrtie: average write time
+		 max_postprocessing: maximum postprocessing time
+		 min_postprocessing: minimum postprocessing time 
+		 avg_postprocessing: average postprocessing time
+		'''
+		# Data prepare
+		block_limit_in_bytes = block_limit << 20 # to bytes
+		block_count = output_per_rank // block_limit
+		if output_per_rank % block_limit:
+			block_count += 1
+
+		data = [None for i in range(0, block_count)]
+		for idx, _ in enumerate(data):
+			if idx == block_count - 1 and output_per_rank % block_limit:
+				last_block_size = (output_per_rank % block_limit) << 20 # in bytes
+				data[idx] = bytes( self.__mpi_rank for i in range(0, last_block_size) )
+			else:
+				data[idx] = bytes( self.__mpi_rank for i in range(0, block_limit_in_bytes) )		
+
+		output_blob_name = blob_name + '{:0>5}'.format(self.__mpi_rank)
+
+		# Output
+		start = MPI.Wtime()
+		for idx, content in enumerate(data):
+			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, idx)
+			self.__block_blob_service.put_block(container_name, output_blob_name, content, block_id)
+		end = MPI.Wtime()
+		
+		start_postprocessing = MPI.Wtime()
+		block_list = self.__block_blob_service.get_block_list(container_name, output_blob_name, block_list_type=BlockListType.All)
+		self.__block_blob_service.put_block_list(container_name, output_blob_name, block_list.uncommitted_blocks)
+		end_postprocessing = MPI.Wtime()
+
+		max_write, min_write, avg_write = common.collect_bench_metrics(end - start)
+		max_postprocessing, min_postprocessing, avg_postprocessing = common.collect_bench_metrics(end_postprocessing - start_postprocessing)
+		return max_write, min_write, avg_write, max_postprocessing, min_postprocessing, avg_postprocessing
+		
