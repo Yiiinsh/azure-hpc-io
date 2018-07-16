@@ -57,7 +57,7 @@ class AzureBlobBench(object):
 			section_count = 1
 		else:
 			if blob_size_in_mib % self.__mpi_size:
-				raise ValueError('blob size cannot be divided to')
+				raise ValueError('blob size cannot be divided by mpi size')
 			section_count = blob_size_in_mib // self.__mpi_size
 			if section_count % section_limit:
 				section_count = section_count // section_limit + 1
@@ -95,7 +95,7 @@ class AzureBlobBench(object):
 		 min_read: minimum read time
 		 avg_read: average read time
 		'''
-		proc_blob_name = blob_name + '{:0>5}'.format(MPI.COMM_WORLD.Get_rank())
+		proc_blob_name = blob_name + '{:0>5}'.format(self.__mpi_rank)
 
 		return self.bench_inputs_with_single_blob(container_name, proc_blob_name)
 
@@ -149,6 +149,8 @@ class AzureBlobBench(object):
 		MPI.COMM_WORLD.Barrier()
 		max_write, min_write, avg_write = common.collect_bench_metrics(end - start)
 
+		start_postprocessing = 0
+		end_postprocessing = 0
 		if 0 == self.__mpi_rank:
 			start_postprocessing = MPI.Wtime()
 			# Get block list to be committed and rearrange
