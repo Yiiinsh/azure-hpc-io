@@ -19,7 +19,7 @@ class CirrusLustreBench(object):
 	
 	__repr__ = __str__
 
-	def bench_inputs_with_single_file(self, file_name):
+	def bench_inputs_with_single_file(self, file_name, section_limit = 1024):
 		'''
 		Benchmarking lustre file get with multiple access on a single file
 		
@@ -36,16 +36,37 @@ class CirrusLustreBench(object):
 		 min_read: minimum read time
 		 avg_read: average read time
 		'''
+		# Check sections to be get
+		file_size = os.path.getsize(file_name)
+		file_size_in_mib = file_size >> 20 # in MiB
+		sectino_limit_in_bytes = section_limit << 20 # in bytes
+		section_count = 0
+		if file_size_in_mib <= section_limit:
+			section_count = 1
+		else:
+			if file_size_in_mib % self.__mpi_size:
+				raise ValueError('blob size cannot be divided by mpi size')
+			section_count = file_size_in_mib // self.__mpi_size
+			if section_count % section_limit:
+				section_count = section_count // section_limit + 1
+			else:
+				section_count = section_count // section_limit
+
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		with open(file_name, 'r') as f:
-			f.read()
+		if section_count == 1:
+			with open(file_name, 'r') as f:
+				f.read()
+		else:
+			with open(file_name, 'r') as f:
+				for _ in range(0, section_count):
+					f.read(sectino_limit_in_bytes)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
 		return common.collect_bench_metrics(end - start)
 	
-	def bench_inputs_with_multiple_files(self, file_name):
+	def bench_inputs_with_multiple_files(self, file_name, section_limit = 1024):
 		'''
 		Benchmarking lustre file get with multiple access on multiple files
 		
@@ -53,6 +74,7 @@ class CirrusLustreBench(object):
 
 		param:
 		 file_name: File name
+		 section_limit: Limit of sections for each get operation in MiB
 
 		return:
 		 max_read: maximum read time
@@ -61,7 +83,24 @@ class CirrusLustreBench(object):
 		'''
 		proc_file_name = file_name + '{:0>5}'.format(self.__mpi_rank)
 
-		return self.bench_inputs_with_single_file(proc_file_name)
+		# Check sections to be get
+		file_size = os.path.getsize(proc_file_name)
+		file_size_in_mib = file_size >> 20 # in MiB
+		sectino_limit_in_bytes = section_limit << 20 # in bytes
+		section_count = file_size_in_mib // section_limit
+		if file_size_in_mib % section_limit:
+			section_count += 1
+
+		# Get
+		MPI.COMM_WORLD.Barrier()
+		start = MPI.Wtime()
+		with open(proc_file_name, 'r') as f:
+			for _ in range(0, section_count):	
+				f.read(sectino_limit_in_bytes)
+		end = MPI.Wtime()
+		MPI.COMM_WORLD.Barrier()
+
+		return common.collect_bench_metrics(end - start)
 
 	def bench_outputs_with_single_file(self, file_name, output_per_rank = 1024):
 		'''

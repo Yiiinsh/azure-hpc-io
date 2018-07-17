@@ -32,13 +32,16 @@ This strategy requires source data to be pre-processed and well matched with the
 * The application are run with one process per core
 * The amount of data each process downloads is restricted by the available memory
 * The limitation of a single Azure Blob is 4.75 TiB and Azure File is 1 TiB
-* A Blob container has the capacity of 500 TiB and a file share has the capacity of 5 TiB
 * Block Blob is used for Blob benchmarking and default block size are used
 
 ## Benchmark
 This section reveals the performance of 'Single File, Multiple Readers' and 'Multiple Files, Multiple Readers' pattern using Azure's cloud-native storage. Reading from Azure Blob, Azure File and corresponding operations using POSIX I/O on Cirrus Lustre file system are performed and results are listed.
 
 Experiments run on **5 nodes, 4 processes** each. Azure Standard **A4_v2** VM configurations are used. Results got from 100 iterations of benchmarkings.
+
+For 'Multiple Files, Multiple Readers' pattern, files are evenly divided into corresponding sub-files. E.g. 100 GiB file, 20 processes, we divide it into 20 small files with 5 GiB each. Each processes reads their own file.
+
+For all I/O operations, there are limits on data sizes for each operation. If the size of data exceeds the limits, the operation will be sepearated into serval sub-ops that make up the entire operation. For instance, if we want to update a 4 GiB file with the limit of 1GiB, the operation will be divided into 4 sub-ops that upload 1 GiB each time.
 
 ### Start Up
 As is restricted by the VM's memory, for each downloads we can only get the inputs less than 1.5 GiB on **A4_v2**. For start up, we test the case that all the processes downloads the entire file with the size that could be directly loaded into memory.
@@ -74,10 +77,18 @@ As is restricted by the VM's memory, for each downloads we can only get the inpu
 | 1024 | 55.804 | 62.280 |  837.285 |
 
 ### Extended to Larger File Sizes
-| File Size(TiB) | Blob(TiB/s) | File(TiB/s) | Cirrus(TiB/s) |
+#### Single File, Multiple Readers
+| File Size(GiB) | Blob(GiB/s) | File(GiB/s) | Cirrus(GiB/s) |
 | :------ | :-------| :-------| :-------|
-| 0.50 | 28.571 | 20.408 |  333.333 |  
-| 1.00 | 28.571 | 20.408 |  333.333 |  
-| 2.25 | 37.736 | 29.412 | 1000.000 |
-| 3.50 | 39.604 | 38.462 |  400.000 |
-| 4.75 | 48.485 | 43.478 |  800.000 |
+|  500 | 28.571 | 20.408 |  333.333 |  
+| 1000 | 28.571 | 20.408 |  333.333 |  
+| 2560 | 37.736 | N/A    | 1000.000 |
+| 4860 | 39.604 | N/A    |  400.000 |
+
+#### Multiple Files, Multiple Readers
+| File Size(GiB) | Blob(GiB/s) | File(GiB/s) | Cirrus(GiB/s) |
+| :------ | :-------| :-------| :-------|
+|  500 | 28.571 | 20.408 |  333.333 |  
+| 1000 | 28.571 | 20.408 |  333.333 |  
+| 2560 | 37.736 | N/A    | 1000.000 |
+| 4860 | 39.604 | N/A    |  400.000 |

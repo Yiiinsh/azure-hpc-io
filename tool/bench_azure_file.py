@@ -73,15 +73,17 @@ class AzureFileBench(object):
 			for section in range(0, section_count):
 				range_start = section * (self.__mpi_size * section_limit_in_bytes) + self.__mpi_rank * section_limit_in_bytes
 				range_end = range_start + section_limit_in_bytes - 1
-				if range_start > file_size:
+				if range_start > file_size - 1:
 					break
+				if range_end > file_size - 1:
+					range_end = file_size - 1
 				self.__file_service.get_file_to_bytes(share_name, directory_name, file_name, start_range=range_start, end_range=range_end)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
 		return common.collect_bench_metrics(end - start)
 
-	def bench_inputs_with_multiple_files(self, share_name, directory_name, file_name):
+	def bench_inputs_with_multiple_files(self, share_name, directory_name, file_name, section_limit = 1024):
 		'''
 		Benchmarking File get with multiple access on multiple processes within a single share.
 		File size should be valid.
@@ -91,6 +93,7 @@ class AzureFileBench(object):
 		 share_name: File share
 		 directory_name: Directory name
 		 file_name: File name
+		 section_limit: Limit of sections for each get operation in MiB
 
 		return:
 		 max_read: maximum read time
@@ -99,7 +102,29 @@ class AzureFileBench(object):
 		'''
 		proc_file_name = file_name + '{:0>5}'.format(self.__mpi_rank)
 
-		return self.bench_inputs_with_single_file(share_name, directory_name, proc_file_name)
+		# Check sections to be get
+		file_size = self.__file_service.get_file_properties(share_name, directory_name, proc_file_name).properties.content_length
+		file_size_in_mib = file_size >> 20 # in MiB
+		section_limit_in_bytes = section_limit << 20 # in bytes
+		section_count = file_size_in_mib // section_limit
+		if file_size_in_mib % section_limit:
+			section_count += 1
+		
+		# Get
+		MPI.COMM_WORLD.Barrier()
+		start = MPI.Wtime()
+		for section in range(0, section_count):
+			range_start = section * section_limit_in_bytes
+			range_end = range_start + section_limit_in_bytes - 1
+			if range_start > file_size - 1:
+				break
+			if range_end > file_size - 1:
+				range_end = file_size - 1
+			self.__file_service.get_file_to_bytes(share_name, directory_name, proc_file_name, start_range=range_start, end_range=range_end)
+		end = MPI.Wtime()
+		MPI.COMM_WORLD.Barrier()
+
+		return common.collect_bench_metrics(end - start)
 
 	def bench_outputs_with_single_file(self, share_name, directory_name, file_name, output_per_rank = 1024, file_chunk_limit = 1024):
 		'''

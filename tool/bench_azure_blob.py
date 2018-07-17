@@ -1,5 +1,5 @@
 from mpi4py import MPI
-from azure.storage.blob import BlockBlobService, BlockListType
+from azure.storage.blob import BlockBlobService, BlockListType, PageBlobService
 from common import common
 
 class AzureBlobBench(object):
@@ -12,27 +12,29 @@ class AzureBlobBench(object):
 	 account_key: Azure Storage account key
 	 access_container_list: Containers to be accessed
 	'''
-	__slots__=('__mpi_rank', '__mpi_size', '__block_blob_service')
+	__slots__=('__mpi_rank', '__mpi_size', '__block_blob_service', '__page_blob_service')
 
 	def __init__(self, account_name, account_key, access_container_list):
 		self.__mpi_rank = MPI.COMM_WORLD.Get_rank()
 		self.__mpi_size = MPI.COMM_WORLD.Get_size()
 
 		self.__block_blob_service = BlockBlobService(account_name=account_name, account_key=account_key)
+		self.__page_blob_service = PageBlobService(account_name=account_name, account_key=account_key)
 		
 		if not isinstance(access_container_list, list):
 			raise TypeError('access_container_list should be a list!')
 		for container in access_container_list:
 			self.__block_blob_service.get_container_acl(container)
+			self.__page_blob_service.get_container_acl(container)
 
 	def __str__(self):
 		return '[AzureBlobBench]: on rank {0} out of {1}'.format(self.__mpi_rank, self.__mpi_size)
 
 	__repr__ = __str__
 
-	def bench_inputs_with_single_blob(self, container_name, blob_name, section_limit = 1024):
+	def bench_inputs_with_single_block_blob(self, container_name, blob_name, section_limit = 1024):
 		'''
-		Benchmarking Blob get with multiple access on a single blob within a single container.
+		Benchmarking Block Blob get with multiple access on a single blob within a single container.
 		
 		If the size of source blob is larger than limits, the get operation will be divided into serval sections, with getting size of section_limit each time.
 		
@@ -72,23 +74,26 @@ class AzureBlobBench(object):
 			for section in range(0, section_count):
 				range_start = section * (self.__mpi_size * section_limit_in_bytes) + self.__mpi_rank * section_limit_in_bytes
 				range_end = range_start + section_limit_in_bytes - 1
-				if range_start > blob_size:
+				if range_start > blob_size - 1:
 					break
+				if range_end > blob_size - 1:
+					range_end = blob_size - 1
 				self.__block_blob_service.get_blob_to_bytes(container_name, blob_name, start_range=range_start, end_range=range_end)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
 		return common.collect_bench_metrics(end - start)
 
-	def bench_inputs_with_multiple_blobs(self, container_name, blob_name):
+	def bench_inputs_with_multiple_block_blobs(self, container_name, blob_name, section_limit=1024):
 		'''
-		Benchmarking Blob get with multiple access on multiple processes within a single container.
+		Benchmarking Block Blob get with multiple access on multiple processes within a single container.
 		Blob size should be valid.
 		Blobs corresponding to each processes should be named after the pattern of blob_name + rank
 
 		param:
 		 container_name: Blob container
 		 blob_name: Blob name
+		 section_limit: Limit of sections for each get operation in MiB
 
 		return:
 		 max_read: maximum read time
@@ -97,9 +102,31 @@ class AzureBlobBench(object):
 		'''
 		proc_blob_name = blob_name + '{:0>5}'.format(self.__mpi_rank)
 
-		return self.bench_inputs_with_single_blob(container_name, proc_blob_name)
+		# Check sections to be get
+		blob_size = self.__block_blob_service.get_blob_properties(container_name, proc_blob_name).properties.content_length # in bytes
+		blob_size_in_mib = blob_size >> 20 # in MiB
+		section_limit_in_bytes = section_limit << 20 # in bytes
+		section_count = blob_size_in_mib // section_limit
+		if blob_size_in_mib % section_limit:
+			section_count += 1
 
-	def bench_outputs_with_single_blob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 100):
+		# Get
+		MPI.COMM_WORLD.Barrier()
+		start = MPI.Wtime()
+		for section in range(0, section_count):
+			range_start = section * section_limit_in_bytes
+			range_end = range_start + section_limit_in_bytes - 1
+			if range_start > blob_size - 1:
+				break
+			if range_end > blob_size - 1:
+				range_end = blob_size - 1
+			self.__block_blob_service.get_blob_to_bytes(container_name, proc_blob_name, start_range=range_start, end_range=range_end)
+		end = MPI.Wtime()
+		MPI.COMM_WORLD.Barrier()
+
+		return common.collect_bench_metrics(end - start)
+
+	def bench_outputs_with_single_block_blob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 100):
 		'''
 		Benchmarking Block Blob write with multiple access on a single blob within a single container
 		
@@ -165,7 +192,7 @@ class AzureBlobBench(object):
 
 		return max_write, min_write, avg_write, end_postprocessing - start_postprocessing
 
-	def bench_outputs_with_multiple_blob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 1024):
+	def bench_outputs_with_multiple_blockblob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 1024):
 		'''
 		Benchmarking Block Blob write with multiple access on multiple blobs within a single container
 		
