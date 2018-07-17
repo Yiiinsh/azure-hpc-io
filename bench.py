@@ -31,7 +31,7 @@ def bench():
 
 	# Benchmarking
 	if 0 == rank:
-		print('Bench Target: {0}, Bench Item: {1}'.format(bench_targets, bench_items))
+		print('Bench Target: {0}, Bench Item: {1}, Bench Pattern:{2}, Bench repeat {3} times'.format(bench_targets, bench_items, bench_pattern, repeat_times))
 	if bench_targets == 'azure_blob':
 		azure_blob_bench = AzureBlobBench(config_azure['account_name'], config_azure['account_key'], [config_azure['input_container_name']])
 
