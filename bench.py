@@ -6,11 +6,9 @@ Benchmarking I/O performance for HPC purpose
 import configparser
 from mpi4py import MPI
 from common import common
-from cirrus_lustre_bench import benchcirrus
-from azure_blob_bench import benchblob
-from azure_file_bench import benchfile
 from tool.bench_azure_blob import AzureBlobBench
 from tool.bench_azure_file import AzureFileBench
+from tool.bench_cirrus_lustre import CirrusLustreBench
 
 def bench():
 	# Configurations
@@ -32,6 +30,8 @@ def bench():
 	bench_pattern = config_bench['bench_pattern']
 
 	# Benchmarking
+	if 0 == rank:
+		print('Bench Target: {0}, Bench Item: {1}'.format(bench_targets, bench_items))
 	if bench_targets == 'azure_blob':
 		azure_blob_bench = AzureBlobBench(config_azure['account_name'], config_azure['account_key'], [config_azure['input_container_name']])
 
@@ -58,6 +58,20 @@ def bench():
 			elif bench_pattern == 'MFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = azure_file_bench.bench_inputs_with_multiple_files(config_azure['input_share_name'], config_azure['input_directory_name'], config_azure['input_file_name'])
+					if 0 == rank:
+						print(max_time, min_time, avg_time)
+	elif bench_targets == 'cirrus_lustre':
+		cirrus_lustre_bench = CirrusLustreBench()
+
+		if bench_items == 'input':
+			if bench_pattern == 'SFMR':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time = cirrus_lustre_bench.bench_inputs_with_single_file(config_azure['input_file_name'])
+					if 0 == rank:
+						print(max_time, min_time, avg_time)
+			elif bench_pattern == 'MFMR':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time = cirrus_lustre_bench.bench_inputs_with_multiple_files(config_azure['input_file_name'])
 					if 0 == rank:
 						print(max_time, min_time, avg_time)
 	
