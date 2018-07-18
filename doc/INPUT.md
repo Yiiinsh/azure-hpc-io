@@ -44,51 +44,48 @@ For 'Multiple Files, Multiple Readers' pattern, files are evenly divided into co
 For all I/O operations, there are limits on data sizes for each operation. If the size of data exceeds the limits, the operation will be sepearated into serval sub-ops that make up the entire operation. For instance, if we want to update a 4 GiB file with the limit of 1GiB, the operation will be divided into 4 sub-ops that upload 1 GiB each time.
 
 ### Start Up
-As is restricted by the VM's memory, for each downloads we can only get the inputs less than 1.5 GiB on **A4_v2**. For start up, we test the case that all the processes downloads the entire file with the size that could be directly loaded into memory.
+As is restricted by the VM's memory, for each downloads we can only get the inputs less than 1.5 GiB on **A4_v2**. For start up, we test the case that all the processes downloads the entire file with the size that could be directly loaded into memory. Demonstrations for this pattern can be found below:
+
+![InputStartup](img/InputStartup.jpg)
 
 #### Single File, Multiple Readers
-| File Size(MiB) | Blob(MiB/s) | File(MiB/s) | Cirrus(MiB/s) |
-| :------ | :-------| :-------| :-------|
-|    1 | 28.571 | 20.408 |  333.333 |  
-|    2 | 37.736 | 29.412 | 1000.000 |
-|    4 | 39.604 | 38.462 |  400.000 |
-|    8 | 48.485 | 43.478 |  800.000 |
-|   16 | 52.632 | 50.314 |  800.000 |
-|   32 | 53.872 | 49.536 | 1103.448 |
-|   64 | 51.077 | 52.373 |  901.408 |
-|  128 | 52.096 | 56.487 |  914.286 |
-|  256 | 53.256 | 57.749 |  948.148 |
-|  512 | 53.618 | 60.157 |  971.537 |
-| 1024 | 55.804 | 62.280 |  837.285 |
+| File Size(MiB) | Blob Latency (s) | Blob Bandwidth (MiB/s) | File Latency (s) | File Bandwidth (MiB/s) | Cirrus Latency (s) | Cirrus Bandwidth (MiB/s) |
+| :------ | :-------| :-------| :-------| :-------| :-------| :-------|
+|    1 | 0 | 0 | 0 | 0 | 0 | 0 |  
+|    2 | 0 | 0 | 0 | 0 | 0 | 0 |
+|    4 | 0 | 0 | 0 | 0 | 0 | 0 |
+|    8 | 0 | 0 | 0 | 0 | 0 | 0 |
+|   16 | 0 | 0 | 0 | 0 | 0 | 0 |
+|   32 | 0 | 0 | 0 | 0 | 0 | 0 |
+|   64 | 0 | 0 | 0 | 0 | 0 | 0 |
+|  128 | 0 | 0 | 0 | 0 | 0 | 0 |
+|  256 | 0 | 0 | 0 | 0 | 0 | 0 |
+|  512 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 1024 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 #### Multiple Files, Multiple Readers
-| File Size(MiB) | Blob(MiB/s) | File(MiB/s) | Cirrus(MiB/s) |
-| :------ | :-------| :-------| :-------|
-|    1 | 28.571 | 20.408 |  333.333 |  
-|    2 | 37.736 | 29.412 | 1000.000 |
-|    4 | 39.604 | 38.462 |  400.000 |
-|    8 | 48.485 | 43.478 |  800.000 |
-|   16 | 52.632 | 50.314 |  800.000 |
-|   32 | 53.872 | 49.536 | 1103.448 |
-|   64 | 51.077 | 52.373 |  901.408 |
-|  128 | 52.096 | 56.487 |  914.286 |
-|  256 | 53.256 | 57.749 |  948.148 |
-|  512 | 53.618 | 60.157 |  971.537 |
-| 1024 | 55.804 | 62.280 |  837.285 |
+| File Size(MiB) | Blob Latency (s) | Blob Bandwidth (MiB/s) | File Latency (s) | File Bandwidth (MiB/s) | Cirrus Latency (s) | Cirrus Bandwidth (MiB/s) |
+| :------ | :-------| :-------| :-------| :-------| :-------| :-------|
+|    1 | 0 | 0 | 0 | 0 | 0 | 0 |  
+|    2 | 0 | 0 | 0 | 0 | 0 | 0 |
+|    4 | 0 | 0 | 0 | 0 | 0 | 0 |
+|    8 | 0 | 0 | 0 | 0 | 0 | 0 |
+|   16 | 0 | 0 | 0 | 0 | 0 | 0 |
+|   32 | 0 | 0 | 0 | 0 | 0 | 0 |
+|   64 | 0 | 0 | 0 | 0 | 0 | 0 |
+|  128 | 0 | 0 | 0 | 0 | 0 | 0 |
+|  256 | 0 | 0 | 0 | 0 | 0 | 0 |
+|  512 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 1024 | 0 | 0 | 0 | 0 | 0 | 0 |	
 
 ### Extended to Larger File Sizes
-#### Single File, Multiple Readers
-| File Size(GiB) | Blob(GiB/s) | File(GiB/s) | Cirrus(GiB/s) |
-| :------ | :-------| :-------| :-------|
-|  500 | 28.571 | 20.408 |  333.333 |  
-| 1000 | 28.571 | 20.408 |  333.333 |  
-| 2560 | 37.736 | N/A    | 1000.000 |
-| 4860 | 39.604 | N/A    |  400.000 |
+This section reveals the performance of getting a large single file from the cloud. As is limited by the available memory size of host VMs, for a large inputs it is impossible to download the entire file at once. So the source file is evenly divided into serval sub-sections and each processes is responsible for one of them. (e.g for a 500 GiB file with 20 processes processing on it, each process will work on its 25 GiB sub-section) Demonstrations for this pattern is represented below:
 
-#### Multiple Files, Multiple Readers
-| File Size(GiB) | Blob(GiB/s) | File(GiB/s) | Cirrus(GiB/s) |
-| :------ | :-------| :-------| :-------|
-|  500 | 28.571 | 20.408 |  333.333 |  
-| 1000 | 28.571 | 20.408 |  333.333 |  
-| 2560 | 37.736 | N/A    | 1000.000 |
-| 4860 | 39.604 | N/A    |  400.000 |
+![InputExtend](img/InputExtend.jpg)
+
+| File Size(GiB) | Blob Latency (s) | Blob Bandwidth (GiB/s) | File Latency (s) | File Bandwidth (GiB/s) | Cirrus Latency (s) | Cirrus Bandwidth (GiB/s) |
+| :------ | :-------| :-------| :-------| :-------| :-------| :-------|
+| 500             | 0 | 0 | 0 | 0 | 0 | 0 |  
+| 1000            | 0 | 0 | 0 | 0 | 0 | 0 |  
+| 2560(~2.5 TiB)  | 0 | 0 | 0 | 0 | 0 | 0 |
+| 4860(~4.75 TiB) | 0 | 0 | 0 | 0 | 0 | 0 |
