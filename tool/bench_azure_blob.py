@@ -154,24 +154,23 @@ class AzureBlobBench(object):
 		'''
 		# Data prepare
 		block_limit_in_bytes = block_limit << 20 # to bytes
+		data = bytes(self.__mpi_rank for i in range(0, block_limit_in_bytes))
+		last_block_data = data
 		block_count = output_per_rank // block_limit
 		if output_per_rank % block_limit:
 			block_count += 1
-
-		data = [None for i in range(0, block_count)]
-		for idx, _ in enumerate(data):
-			if idx == block_count - 1 and output_per_rank % block_limit:
-				last_block_size = (output_per_rank % block_limit) << 20 # in bytes
-				data[idx] = bytes( self.__mpi_rank for i in range(0, last_block_size) )
-			else:
-				data[idx] = bytes( self.__mpi_rank for i in range(0, block_limit_in_bytes) )
+			last_block_size = (output_per_rank % block_limit) << 20 # in bytes
+			last_block_data = bytes(self.__mpi_rank for i in range(0, last_block_size))
 
 		# PUT blocks
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		for idx, content in enumerate(data):
-			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, idx)
-			self.__block_blob_service.put_block(container_name, blob_name, content, block_id)
+		for i in range(0, block_count):
+			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, i)
+			if i != (block_count - 1):
+				self.__block_blob_service.put_block(container_name, blob_name, data, block_id)
+			elif i == (block_count - 1):
+				self.__block_blob_service.put_block(container_name, blob_name, last_block_data, block_id)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 		max_write, min_write, avg_write = common.collect_bench_metrics(end - start)
@@ -218,25 +217,24 @@ class AzureBlobBench(object):
 		'''
 		# Data prepare
 		block_limit_in_bytes = block_limit << 20 # to bytes
+		data = bytes(self.__mpi_rank for i in range(0, block_limit_in_bytes))
+		last_block_data = data
 		block_count = output_per_rank // block_limit
 		if output_per_rank % block_limit:
 			block_count += 1
-
-		data = [None for i in range(0, block_count)]
-		for idx, _ in enumerate(data):
-			if idx == block_count - 1 and output_per_rank % block_limit:
-				last_block_size = (output_per_rank % block_limit) << 20 # in bytes
-				data[idx] = bytes( self.__mpi_rank for i in range(0, last_block_size) )
-			else:
-				data[idx] = bytes( self.__mpi_rank for i in range(0, block_limit_in_bytes) )		
+			last_block_size = (output_per_rank % block_limit) << 20 # in bytes
+			last_block_data = bytes(self.__mpi_rank for i in range(0, last_block_size))
 
 		output_blob_name = blob_name + '{:0>5}'.format(self.__mpi_rank)
 
 		# Output
 		start = MPI.Wtime()
-		for idx, content in enumerate(data):
-			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, idx)
-			self.__block_blob_service.put_block(container_name, output_blob_name, content, block_id)
+		for i in range(0, block_count):
+			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, i)
+			if i != (block_count - 1):
+				self.__block_blob_service.put_block(container_name, output_blob_name, data, block_id)
+			elif i == (block_count - 1):
+				self.__block_blob_service.put_block(container_name, output_blob_name, last_block_data, block_id)
 		end = MPI.Wtime()
 		
 		start_postprocessing = MPI.Wtime()

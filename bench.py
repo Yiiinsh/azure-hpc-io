@@ -37,12 +37,19 @@ def bench():
 	input_directory_name = config_azure['input_directory_name']
 	input_blob_name = config_azure['input_blob_name']
 	input_file_name = config_azure['input_file_name']
+	output_container_name = config_azure['output_container_name']
+	output_share_name = config_azure['output_share_name']
+	output_directory_name = config_azure['output_directory_name']
+	output_blob_name = config_azure['output_blob_name']
+	output_file_name = config_azure['output_file_name']
+	output_per_rank = int(config_bench['output_per_rank'])
 
 	MPI.COMM_WORLD.Barrier()
 
 	# Benchmarking
 	if 0 == rank:
 		print('Bench Target: {0}, Bench Item: {1}, Bench Pattern:{2}, Bench repeat {3} times'.format(bench_targets, bench_items, bench_pattern, repeat_times))
+	
 	if bench_targets == 'azure_blob':
 		azure_blob_bench = AzureBlobBench(account_name, account_key, [input_container_name])
 
@@ -50,13 +57,26 @@ def bench():
 			if bench_pattern == 'SFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = azure_blob_bench.bench_inputs_with_single_block_blob(input_container_name, input_blob_name)
-					if 0 == rank:
-						print(max_time, min_time, avg_time)
+					__print_metrics(max_time, min_time, avg_time)
 			elif bench_pattern == 'MFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = azure_blob_bench.bench_inputs_with_multiple_block_blobs(input_container_name, input_blob_name)
-					if 0 == rank:
-						print(max_time, min_time, avg_time)
+					__print_metrics(max_time, min_time, avg_time)
+			else:
+				raise ValueError('Unknown pattern ' + bench_pattern)
+		elif bench_items == 'output':
+			if bench_pattern == 'SFMW':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time, post_time = azure_blob_bench.bench_outputs_with_single_block_blob(output_container_name, output_blob_name, output_per_rank)
+					__print_metrics(max_time, min_time, avg_time, post_time)
+			elif bench_pattern == 'MFMW':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time, max_post, min_post, avg_post = azure_blob_bench.bench_outputs_with_multiple_blockblob(output_container_name, output_directory_name, output_per_rank)
+					__print_metrics(max_time, min_time, avg_time, max_post, min_post, avg_post)
+			else:
+				raise ValueError('Unknown pattern ' + bench_pattern)
+		else:
+			raise ValueError('Unknown item ' + bench_items)
 	elif bench_targets == 'azure_file':
 		azure_file_bench = AzureFileBench(account_name, account_key, [input_share_name])
 
@@ -64,13 +84,26 @@ def bench():
 			if bench_pattern == 'SFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = azure_file_bench.bench_inputs_with_single_file(input_share_name, input_directory_name, input_file_name)
-					if 0 == rank:
-						print(max_time, min_time, avg_time)
+					__print_metrics(max_time, min_time, avg_time)
 			elif bench_pattern == 'MFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = azure_file_bench.bench_inputs_with_multiple_files(input_share_name, input_directory_name, input_file_name)
-					if 0 == rank:
-						print(max_time, min_time, avg_time)
+					__print_metrics(max_time, min_time, avg_time)
+			else:
+				raise ValueError('Unknown pattern ' + bench_pattern)
+		elif bench_items == 'output':
+			if bench_pattern == 'SFMW':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time, pre_time = azure_file_bench.bench_outputs_with_single_file(output_share_name, output_directory_name, output_file_name, output_per_rank)
+					__print_metrics(max_time, min_time, avg_time, pre_time)
+			elif bench_pattern == 'MFMW':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time, max_pre, min_pre, avg_pre = azure_file_bench.bench_outputs_with_multiple_files(output_share_name, output_directory_name, output_file_name, output_per_rank)
+					__print_metrics(max_time, min_time, avg_time, max_pre, min_pre, avg_pre)
+			else:
+				raise ValueError('Unknown pattern ' + bench_pattern)
+		else:
+			raise ValueError('Unknown item ' + bench_items)
 	elif bench_targets == 'cirrus_lustre':
 		cirrus_lustre_bench = CirrusLustreBench()
 
@@ -78,13 +111,30 @@ def bench():
 			if bench_pattern == 'SFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = cirrus_lustre_bench.bench_inputs_with_single_file(input_file_name)
-					if 0 == rank:
-						print(max_time, min_time, avg_time)
+					__print_metrics(max_time, min_time, avg_time)
 			elif bench_pattern == 'MFMR':
 				for _ in range(0, repeat_times):
 					max_time, min_time, avg_time = cirrus_lustre_bench.bench_inputs_with_multiple_files(input_file_name)
-					if 0 == rank:
-						print(max_time, min_time, avg_time)
+					__print_metrics(max_time, min_time, avg_time)
+			else:
+				raise ValueError('Unknown pattern ' + bench_pattern)
+		elif bench_items == 'output':
+			if bench_pattern == 'MFMW':
+				for _ in range(0, repeat_times):
+					max_time, min_time, avg_time = cirrus_lustre_bench.bench_outputs_with_multiple_files(output_file_name, output_per_rank)
+					__print_metrics(max_time, min_time, avg_time)
+			else:
+				raise ValueError('Unknown pattern ' + bench_pattern)
+		else:
+			raise ValueError('Unknown item ' + bench_items)
+	else:
+		raise ValueError('Unknown target ' + bench_targets)
 	
+def __print_metrics(*items):
+	rank, _, _ = common.get_mpi_env()
+	if 0 == rank:
+		print(str(items)[1:-1])
+
+
 if __name__ == '__main__':
 	bench()

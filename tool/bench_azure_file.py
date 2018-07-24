@@ -126,7 +126,7 @@ class AzureFileBench(object):
 
 		return common.collect_bench_metrics(end - start)
 
-	def bench_outputs_with_single_file(self, share_name, directory_name, file_name, output_per_rank = 1024, file_chunk_limit = 1024):
+	def bench_outputs_with_single_file(self, share_name, directory_name, file_name, output_per_rank = 1024, file_chunk_limit = 4):
 		'''
 		Benchmarking File write with multiple access within a single share
 		Data from different rank is stored in different ranges
@@ -151,16 +151,14 @@ class AzureFileBench(object):
 		# Data prepare
 		output_per_rank_in_bytes = output_per_rank << 20 # in bytes
 		file_chunk_limit_in_bytes = file_chunk_limit << 20 # in bytes
+		data = bytes(self.__mpi_rank for i in range(0, file_chunk_limit_in_bytes))
+		data_last_chunk = data
 		chunk_size = output_per_rank // file_chunk_limit
 		if output_per_rank % file_chunk_limit:
 			chunk_size += 1
-		data = [None for i in range(0, chunk_size)]
-		for idx, _ in enumerate(data):
-			if idx == chunk_size - 1 and output_per_rank % file_chunk_limit:
-				data[idx] = bytes(self.__mpi_rank for i in range(0, (output_per_rank % file_chunk_limit) << 20))
-			else:
-				data[idx] = bytes(self.__mpi_rank for i in range(0, file_chunk_limit_in_bytes))
-		
+			last_chunk_size = (output_per_rank % file_chunk_limit) << 20 # in bytes
+			data_last_chunk = bytes(self.__mpi_rank for i in range(0, last_chunk_size))
+
 		# File create
 		create_start = 0
 		create_end = 0
@@ -172,10 +170,15 @@ class AzureFileBench(object):
 		
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		for idx, content in enumerate(data):
-			start_range = self.__mpi_rank * output_per_rank_in_bytes + idx * file_chunk_limit_in_bytes
-			end_range = start_range + len(content) - 1
-			self.__file_service.update_range(share_name, directory_name, file_name, content, start_range, end_range)
+		for i in range(0, chunk_size):
+			if i != (chunk_size - 1):
+				start_range = self.__mpi_rank * output_per_rank_in_bytes + i * file_chunk_limit_in_bytes
+				end_range = start_range + len(data) - 1
+				self.__file_service.update_range(share_name, directory_name, file_name, data, start_range, end_range)
+			elif i == (chunk_size - 1):
+				start_range = self.__mpi_rank * output_per_rank_in_bytes + i * file_chunk_limit_in_bytes
+				end_range = start_range + len(data_last_chunk) - 1
+				self.__file_service.update_range(share_name, directory_name, file_name, data_last_chunk, start_range, end_range)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
@@ -185,7 +188,7 @@ class AzureFileBench(object):
 
 		return max_write, min_write, avg_write, preprocessing_time
 
-	def bench_outputs_with_multiple_files(self, share_name, directory_name, file_name, output_per_rank = 1024, file_chunk_limit = 1024):
+	def bench_outputs_with_multiple_files(self, share_name, directory_name, file_name, output_per_rank = 1024, file_chunk_limit = 4):
 		'''
 		Benchmarking File write with multiple access within a single share
 		Data from different rank is stored in different files
@@ -212,15 +215,13 @@ class AzureFileBench(object):
 		# Data prepare
 		output_per_rank_in_bytes = output_per_rank << 20 # in bytes
 		file_chunk_limit_in_bytes = file_chunk_limit << 20 # in bytes
+		data = bytes(self.__mpi_rank for i in range(0, file_chunk_limit_in_bytes))
+		data_last_chunk = data
 		chunk_size = output_per_rank // file_chunk_limit
 		if output_per_rank % file_chunk_limit:
 			chunk_size += 1
-		data = [None for i in range(0, chunk_size)]
-		for idx, _ in enumerate(data):
-			if idx == chunk_size - 1 and output_per_rank % file_chunk_limit:
-				data[idx] = bytes(self.__mpi_rank for i in range(0, (output_per_rank % file_chunk_limit) << 20))
-			else:
-				data[idx] = bytes(self.__mpi_rank for i in range(0, file_chunk_limit_in_bytes))
+			last_chunk_size = (output_per_rank % file_chunk_limit) << 20 # in bytes
+			data_last_chunk = bytes(self.__mpi_rank for i in range(0, last_chunk_size))
 
 		# Preprocessing
 		MPI.COMM_WORLD.Barrier()
@@ -234,10 +235,15 @@ class AzureFileBench(object):
 		# Output
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		for idx,content in enumerate(data):
-			start_range = idx * file_chunk_limit_in_bytes
-			end_range = start_range + len(content)
-			self.__file_service.update_range(share_name, directory_name, output_file_name, content, start_range, end_range)
+		for i in range(0, chunk_size):
+			if i != (chunk_size - 1):
+				start_range = i * file_chunk_limit_in_bytes
+				end_range = start_range + len(data)
+				self.__file_service.update_range(share_name, directory_name, output_file_name, data, start_range, end_range)
+			elif i == (chunk_size - 1):
+				start_range = i * file_chunk_limit_in_bytes
+				end_range = start_range + len(data_last_chunk)
+				self.__file_service.update_range(share_name, directory_name, output_file_name, data_last_chunk, start_range, end_range)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 		max_time, min_time, avg_time = common.collect_bench_metrics(end - start)
