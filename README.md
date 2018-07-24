@@ -26,44 +26,7 @@ Related Azure specifications can be found on [Azure Spec](doc/AzureSpec.md)
 | azure-storage | 0.36.0 | 0.36.0 |
 
 ## Input
-### Overview
-This section reveals the test result on inputs benchmarking. 'Single File, Multiple Readers' pattern is used in this test. Every processes downloads the entire blob/file from cloud native storage in bytes. The length of data is restricted to the available memory for the process. Results for running on a lustre file system within Cirrus are also attached.
-
-### File Size
-Experiments run on **5 Nodes, 4 processes** each. 
-
-| File Size(MiB) | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
-| :------ | :-------| :-------| :-------|
-| 1 | 28.571 | 20.408 | 333.333 |  
-| 2 | 37.736 | 29.412 | 1000 |
-| 4 | 39.604 | 38.462 | 400 |
-| 8 | 48.485 | 43.478 | 800 |
-| 16 | 52.632 | 50.314 | 800 |
-| 32 | 53.872 | 49.536 | 1103.448 |
-| 64 | 51.077 | 52.373 | 901.408 |
-| 128 | 52.096 | 56.487 | 914.286 |
-| 256 | 53.256 | 57.749 | 948.148 |
-| 512 | 53.618 | 60.157 | 971.537 |
-| 1024 | 55.804 | 62.280 | 837.285 |
-
-### Nodes
-Experiments run on **20** processes with file size fixed at 64 MiB.
-
-| Procs/Node | Nodes | Azure Block Blob (MiB/s) | Azure File (MiB/s) | Cirrus (MiB/s) |
-| :------ | :-------| :-------| :-------| :-------|
-| 1 | 20 | 50.235 | 52.980 | 771.084 |
-| 2 | 10 | 52.545 | 53.601 | 1163.636 |
-| 4 | 5 | 50.354 | 53.872 | 1103.448 |
-| 6 | 4 |  |  | 1032.258 |
-| 8 | 3 |  |  | 941.176 |
-
-### Number of processes
-TBD.
-
-### Potential Improvments
-AsyncI/O & Get range; Multiple containers; Block sizes etc.
-
-### Analysis
+Details can be found on [Input Bench](doc/INPUT.md)
 
 ## Output
 ### Overview

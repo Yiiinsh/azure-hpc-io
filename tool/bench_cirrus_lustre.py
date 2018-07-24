@@ -64,7 +64,7 @@ class CirrusLustreBench(object):
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
-		return common.collect_bench_metrics(end - start)
+		return common.collect_bench_metrics(end - start, precision=5)
 	
 	def bench_inputs_with_multiple_files(self, file_name, section_limit = 1024):
 		'''
@@ -100,7 +100,7 @@ class CirrusLustreBench(object):
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
-		return common.collect_bench_metrics(end - start)
+		return common.collect_bench_metrics(end - start, precision=5)
 
 	def bench_outputs_with_single_file(self, file_name, output_per_rank = 1024):
 		'''
@@ -141,4 +141,4 @@ class CirrusLustreBench(object):
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
-		return common.collect_bench_metrics(end - start)
+		return common.collect_bench_metrics(end - start, precision=5)
