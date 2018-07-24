@@ -191,7 +191,7 @@ class AzureBlobBench(object):
 
 		return max_write, min_write, avg_write, end_postprocessing - start_postprocessing
 
-	def bench_outputs_with_multiple_blockblob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 1024):
+	def bench_outputs_with_multiple_blockblob(self, container_name, blob_name, output_per_rank = 1024, block_limit = 100, data = None):
 		'''
 		Benchmarking Block Blob write with multiple access on multiple blobs within a single container
 		
@@ -216,33 +216,19 @@ class AzureBlobBench(object):
 		 avg_postprocessing: average postprocessing time
 		'''
 		# Data prepare
-		block_limit_in_bytes = block_limit << 20 # to bytes
-		data = bytes(self.__mpi_rank for i in range(0, block_limit_in_bytes))
-		last_block_data = data
-		block_count = output_per_rank // block_limit
-		if output_per_rank % block_limit:
-			block_count += 1
-			last_block_size = (output_per_rank % block_limit) << 20 # in bytes
-			last_block_data = bytes(self.__mpi_rank for i in range(0, last_block_size))
-
+		if output_per_rank > 1025:
+			raise ValueError('Not support for large file size currently')
+		output_per_rank_in_bytes = output_per_rank << 20 # in bytes
+		if data == None:
+			data = bytes(self.__mpi_rank for i in range(0, output_per_rank_in_bytes))
 		output_blob_name = blob_name + '{:0>5}'.format(self.__mpi_rank)
 
 		# Output
+		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
-		for i in range(0, block_count):
-			block_id = '{:0>5}-{:0>5}'.format(self.__mpi_rank, i)
-			if i != (block_count - 1):
-				self.__block_blob_service.put_block(container_name, output_blob_name, data, block_id)
-			elif i == (block_count - 1):
-				self.__block_blob_service.put_block(container_name, output_blob_name, last_block_data, block_id)
+		self.__block_blob_service.create_blob_from_bytes(container_name, output_blob_name, data)
 		end = MPI.Wtime()
-		
-		start_postprocessing = MPI.Wtime()
-		block_list = self.__block_blob_service.get_block_list(container_name, output_blob_name, block_list_type=BlockListType.All)
-		self.__block_blob_service.put_block_list(container_name, output_blob_name, block_list.uncommitted_blocks)
-		end_postprocessing = MPI.Wtime()
-
+		MPI.COMM_WORLD.Barrier()
 		max_write, min_write, avg_write = common.collect_bench_metrics(end - start)
-		max_postprocessing, min_postprocessing, avg_postprocessing = common.collect_bench_metrics(end_postprocessing - start_postprocessing)
-		return max_write, min_write, avg_write, max_postprocessing, min_postprocessing, avg_postprocessing
-		
+
+		return max_write, min_write, avg_write

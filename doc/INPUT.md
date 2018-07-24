@@ -51,41 +51,60 @@ As is restricted by the VM's memory, for each downloads we can only get the inpu
 #### Single File, Multiple Readers
 | File Size(MiB) | Blob Latency (s) | Blob Bandwidth (MiB/s) | File Latency (s) | File Bandwidth (MiB/s) | Cirrus Latency (s) | Cirrus Bandwidth (MiB/s) |
 | :------ | :-------| :-------| :-------| :-------| :-------| :-------|
-|    1 | 0 | 0 | 0 | 0 | 0 | 0 |  
-|    2 | 0 | 0 | 0 | 0 | 0 | 0 |
-|    4 | 0 | 0 | 0 | 0 | 0 | 0 |
-|    8 | 0 | 0 | 0 | 0 | 0 | 0 |
-|   16 | 0 | 0 | 0 | 0 | 0 | 0 |
-|   32 | 0 | 0 | 0 | 0 | 0 | 0 |
-|   64 | 0 | 0 | 0 | 0 | 0 | 0 |
-|  128 | 0 | 0 | 0 | 0 | 0 | 0 |
-|  256 | 0 | 0 | 0 | 0 | 0 | 0 |
-|  512 | 0 | 0 | 0 | 0 | 0 | 0 |
-| 1024 | 0 | 0 | 0 | 0 | 0 | 0 |
+|    1 |   0.028 |  714.286 |  0.031 |  645.161 | 0 | 0 |  
+|    2 |   0.051 |  784.314 |  0.056 |  714.286 | 0 | 0 |
+|    4 |   0.100 |  800.000 |  0.106 |  754.717 | 0 | 0 |
+|    8 |   0.184 |  869.565 |  0.185 |  864.865 | 0 | 0 |
+|   16 |   0.344 |  930.233 |  0.337 |  949.555 | 0 | 0 |
+|   32 |   0.666 |  960.961 |  0.665 |  962.406 | 0 | 0 |
+|   64 |   1.455 |  879.725 |  1.296 |  987.654 | 0 | 0 |
+|  128 |   2.664 |  960.961 |  2.519 | 1016.276 | 0 | 0 |
+|  256 |   5.147 |  994.754 |  4.911 | 1042.558 | 0 | 0 |
+|  512 |  10.312 |  993.018 |  9.874 | 1037.067 | 0 | 0 |
+| 1024 |  20.238 | 1101.958 | 18.774 | 1090.870 | 0 | 0 |
+
+##### Blob Summary
+![BlobLatency](img/Azure_Blob_SFMR_Latency.png)
+![BlobBandwidth](img/Azure_Blob_SFMR_Bandwidth.png)
+
+##### File Summary
+![FileLatency](img/Azure_File_SFMR_Latency.png)
+![FileBandwidth](img/Azure_File_SFMR_Bandwidth.png)
 
 #### Multiple Files, Multiple Readers
 | File Size(MiB) | Blob Latency (s) | Blob Bandwidth (MiB/s) | File Latency (s) | File Bandwidth (MiB/s) | Cirrus Latency (s) | Cirrus Bandwidth (MiB/s) |
 | :------ | :-------| :-------| :-------| :-------| :-------| :-------|
-|    1 | 0 | 0 | 0 | 0 | 0 | 0 |  
-|    2 | 0 | 0 | 0 | 0 | 0 | 0 |
-|    4 | 0 | 0 | 0 | 0 | 0 | 0 |
-|    8 | 0 | 0 | 0 | 0 | 0 | 0 |
-|   16 | 0 | 0 | 0 | 0 | 0 | 0 |
-|   32 | 0 | 0 | 0 | 0 | 0 | 0 |
-|   64 | 0 | 0 | 0 | 0 | 0 | 0 |
-|  128 | 0 | 0 | 0 | 0 | 0 | 0 |
-|  256 | 0 | 0 | 0 | 0 | 0 | 0 |
-|  512 | 0 | 0 | 0 | 0 | 0 | 0 |
-| 1024 | 0 | 0 | 0 | 0 | 0 | 0 |	
+|    1 |  0.027 |  758.450 |  0.031 |  669.768 | 0 | 0 |  
+|    2 |  0.045 |  803.504 |  0.052 |  773.042 | 0 | 0 |
+|    4 |  0.098 |  823.551 |  0.099 |  815.125 | 0 | 0 |
+|    8 |  0.178 |  899.512 |  0.179 |  893.923 | 0 | 0 |
+|   16 |  0.323 |  992.151 |  0.316 | 1014.107 | 0 | 0 |
+|   32 |  0.635 | 1009.065 |  0.628 | 1020.623 | 0 | 0 |
+|   64 |  1.275 | 1004.690 |  1.264 | 1013.538 | 0 | 0 |
+|  128 |  2.576 |  994.269 |  2.465 | 1038.989 | 0 | 0 |
+|  256 |  5.058 | 1012.574 |  4.787 | 1069.803 | 0 | 0 |
+|  512 |  9.992 | 1025.015 |  9.407 | 1088.700 | 0 | 0 |
+| 1024 | 19.588 | 1045.939 | 18.168 | 1127.883 | 0 | 0 |	
+
+##### Blob Summary
+![BlobLatency](img/Azure_Blob_MFMR_Latency.png)
+![BlobBandwidth](img/Azure_Blob_MFMR_Bandwidth.png)
+
+##### File Summary
+![FileLatency](img/Azure_File_MFMR_Latency.png)
+![FileBandwidth](img/Azure_File_MFMR_Bandwidth.png)
+
+### Comparison
+![Comparison](img/Bandwidth_Comparison.png)
 
 ### Extended to Larger File Sizes
 This section reveals the performance of getting a large single file from the cloud. As is limited by the available memory size of host VMs, for a large inputs it is impossible to download the entire file at once. So the source file is evenly divided into serval sub-sections and each processes is responsible for one of them. (e.g for a 500 GiB file with 20 processes processing on it, each process will work on its 25 GiB sub-section) Demonstrations for this pattern is represented below:
 
 ![InputExtend](img/InputExtend.jpg)
 
-| File Size(GiB) | Blob Latency (s) | Blob Bandwidth (GiB/s) | File Latency (s) | File Bandwidth (GiB/s) | Cirrus Latency (s) | Cirrus Bandwidth (GiB/s) |
-| :------ | :-------| :-------| :-------| :-------| :-------| :-------|
-| 500             | 0 | 0 | 0 | 0 | 0 | 0 |  
-| 1000            | 0 | 0 | 0 | 0 | 0 | 0 |  
-| 2560(~2.5 TiB)  | 0 | 0 | 0 | 0 | 0 | 0 |
-| 4860(~4.75 TiB) | 0 | 0 | 0 | 0 | 0 | 0 |
+| File Size(GiB) | Blob Latency (s) | Blob Bandwidth (MiB/s) | File Latency (s) | File Bandwidth (MiB/s) |
+| :------ | :-------| :-------| :-------| :-------|
+| 500             |  519.779 |  985.102 | 447.419 | 1144.734 |
+| 1000            |  985.565 | 1039.444 | 893.644 | 1146.168 |
+| 2560(~2.5 TiB)  | 2488.895 | 1054.017 |     N/A |      N/A |
+| 4860(~4.75 TiB) | 4778.008 | 1003.469 |     N/A |      N/A |

@@ -70,9 +70,10 @@ def bench():
 					max_time, min_time, avg_time, post_time = azure_blob_bench.bench_outputs_with_single_block_blob(output_container_name, output_blob_name, output_per_rank)
 					__print_metrics(max_time, min_time, avg_time, post_time)
 			elif bench_pattern == 'MFMW':
+				data = bytes(rank for i in range(0, output_per_rank << 20))
 				for _ in range(0, repeat_times):
-					max_time, min_time, avg_time, max_post, min_post, avg_post = azure_blob_bench.bench_outputs_with_multiple_blockblob(output_container_name, output_directory_name, output_per_rank)
-					__print_metrics(max_time, min_time, avg_time, max_post, min_post, avg_post)
+					max_time, min_time, avg_time = azure_blob_bench.bench_outputs_with_multiple_blockblob(output_container_name, output_blob_name, output_per_rank, data = data)
+					__print_metrics(max_time, min_time, avg_time)
 			else:
 				raise ValueError('Unknown pattern ' + bench_pattern)
 		else:
@@ -97,9 +98,10 @@ def bench():
 					max_time, min_time, avg_time, pre_time = azure_file_bench.bench_outputs_with_single_file(output_share_name, output_directory_name, output_file_name, output_per_rank)
 					__print_metrics(max_time, min_time, avg_time, pre_time)
 			elif bench_pattern == 'MFMW':
+				data = bytes(rank for i in range(0, output_per_rank << 20))
 				for _ in range(0, repeat_times):
-					max_time, min_time, avg_time, max_pre, min_pre, avg_pre = azure_file_bench.bench_outputs_with_multiple_files(output_share_name, output_directory_name, output_file_name, output_per_rank)
-					__print_metrics(max_time, min_time, avg_time, max_pre, min_pre, avg_pre)
+					max_time, min_time, avg_time = azure_file_bench.bench_outputs_with_multiple_files(output_share_name, output_directory_name, output_file_name, output_per_rank, data = data)
+					__print_metrics(max_time, min_time, avg_time)
 			else:
 				raise ValueError('Unknown pattern ' + bench_pattern)
 		else:
