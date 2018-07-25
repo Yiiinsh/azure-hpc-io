@@ -122,8 +122,9 @@ def bench():
 				raise ValueError('Unknown pattern ' + bench_pattern)
 		elif bench_items == 'output':
 			if bench_pattern == 'MFMW':
+				data = bytes(rank for i in range(0, output_per_rank << 20))
 				for _ in range(0, repeat_times):
-					max_time, min_time, avg_time = cirrus_lustre_bench.bench_outputs_with_multiple_files(output_file_name, output_per_rank)
+					max_time, min_time, avg_time = cirrus_lustre_bench.bench_outputs_with_multiple_files(output_file_name, output_per_rank, data=data)
 					__print_metrics(max_time, min_time, avg_time)
 			else:
 				raise ValueError('Unknown pattern ' + bench_pattern)

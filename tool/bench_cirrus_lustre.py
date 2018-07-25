@@ -114,7 +114,7 @@ class CirrusLustreBench(object):
 		'''
 		raise NameError('Unsupport pattern')
 
-	def bench_outputs_with_multiple_files(self, file_name, output_per_rank = 1024):
+	def bench_outputs_with_multiple_files(self, file_name, output_per_rank = 1024, data = None):
 		'''
 		Benchmarking lustre file write with multiple access
 		
@@ -131,7 +131,8 @@ class CirrusLustreBench(object):
 		'''
 		# Data prepare
 		output_per_rank_in_bytes = output_per_rank << 20
-		data = bytes( self.__mpi_rank for i in range(0, output_per_rank_in_bytes) )
+		if data == None:
+			data = bytes( self.__mpi_rank for i in range(0, output_per_rank_in_bytes) )
 		output_file_name = file_name + '{:0>5}'.format(self.__mpi_rank)
 
 		MPI.COMM_WORLD.Barrier()

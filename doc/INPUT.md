@@ -95,7 +95,7 @@ As is restricted by the VM's memory, for each downloads we can only get the inpu
 ![FileBandwidth](img/Azure_File_MFMR_Bandwidth.png)
 
 ### Comparison
-![Comparison](img/Bandwidth_Comparison.png)
+![Comparison](img/Input_Bandwidth_Comparison.png)
 
 ### Extended to Larger File Sizes
 This section reveals the performance of getting a large single file from the cloud. As is limited by the available memory size of host VMs, for a large inputs it is impossible to download the entire file at once. So the source file is evenly divided into serval sub-sections and each processes is responsible for one of them. (e.g for a 500 GiB file with 20 processes processing on it, each process will work on its 25 GiB sub-section) Demonstrations for this pattern is represented below:
@@ -107,4 +107,4 @@ This section reveals the performance of getting a large single file from the clo
 | 500             |  519.779 |  985.102 | 447.419 | 1144.734 |
 | 1000            |  985.565 | 1039.444 | 893.644 | 1146.168 |
 | 2560(~2.5 TiB)  | 2488.895 | 1054.017 |     N/A |      N/A |
-| 4860(~4.75 TiB) | 4778.008 | 1003.469 |     N/A |      N/A |
+| 4860(~4.75 TiB) | 4778.008 | 1003.469 |     N/A |      N/A | 
