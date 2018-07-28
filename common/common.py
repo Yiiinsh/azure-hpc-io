@@ -46,3 +46,6 @@ def get_mpi_env():
 	 [str]processor_name : current processor name
 	'''
 	return MPI.COMM_WORLD.Get_rank(), MPI.COMM_WORLD.Get_size(), MPI.Get_processor_name()
+
+def workload_generator(item, count):
+	return bytes(item for i in range(0, count))

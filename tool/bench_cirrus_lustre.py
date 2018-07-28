@@ -1,57 +1,45 @@
 import os
 from mpi4py import MPI
+from tool.base_bench import BaseBench
 from common import common
 
-class CirrusLustreBench(object):
+class CirrusLustreBench(BaseBench):
 	''' 
 	Tools for benchmarking Cirrus Lustre\'s performance for HPC purpose.
 	MPI is used for process management.
 
 	'''
+	# File Limits
+	SECTION_LMIT = 1024 # in MiB
+	SECTION_LIMIT_IN_BYTES = SECTION_LMIT << 20 # in bytes
+
 	__slots__=('__mpi_rank', '__mpi_size')
 
 	def __init__(self):
 		self.__mpi_rank = MPI.COMM_WORLD.Get_rank()
 		self.__mpi_size = MPI.COMM_WORLD.Get_size()
-	
-	def __str__(self):
-		return '[CirrusLustreBench]: on rank {0} out of {1}'.format(self.__mpi_rank, self.__mpi_size)
-	
-	__repr__ = __str__
 
-	def bench_inputs_with_single_file(self, file_name, section_limit = 1024):
+	def bench_inputs_with_single_file_multiple_readers(self, container_name, directory_name, file_name):
 		'''
-		Benchmarking lustre file get with multiple access on a single file
-		
-		If the size of source file is larger than section limits, the get operation will be divided into serval sections, with getting size of section_limit each time.
-		
-		For benchmarking on a single large section, the input shoud be set to a proper size that can be divided by MPI_SIZE * section_limit
+		Benchmarking inputs with pattern `Single File Multiple Readers`
 
 		param:
-		 file_name: File name
-		 section_limit: Limit of sections for each get operation in MiB
-		
+		 container_name: source container
+		 directory_name: source directory
+		 file_name: source file
+
 		return:
 		 max_read: maximum read time
 		 min_read: minimum read time
 		 avg_read: average read time
 		'''
-		# Check sections to be get
+		# Sections to be get
 		file_size = os.path.getsize(file_name)
 		file_size_in_mib = file_size >> 20 # in MiB
-		sectino_limit_in_bytes = section_limit << 20 # in bytes
-		section_count = 0
-		if file_size_in_mib <= section_limit:
-			section_count = 1
-		else:
-			if file_size_in_mib % self.__mpi_size:
-				raise ValueError('blob size cannot be divided by mpi size')
-			section_count = file_size_in_mib // self.__mpi_size
-			if section_count % section_limit:
-				section_count = section_count // section_limit + 1
-			else:
-				section_count = section_count // section_limit
-
+		section_count = file_size_in_mib // self.SECTION_LMIT
+		if file_size_in_mib % self.SECTION_LMIT:
+			section_count = section_count + 1
+		
 		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
 		if section_count == 1:
@@ -60,21 +48,22 @@ class CirrusLustreBench(object):
 		else:
 			with open(file_name, 'r') as f:
 				for _ in range(0, section_count):
-					f.read(sectino_limit_in_bytes)
+					f.read(self.SECTION_LIMIT_IN_BYTES)
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
-		return common.collect_bench_metrics(end - start, precision=5)
-	
-	def bench_inputs_with_multiple_files(self, file_name, section_limit = 1024):
+		return common.collect_bench_metrics(end - start, 5)
+
+	def bench_inputs_with_multiple_files_multiple_readers(self, container_name, directory_name, file_name):
 		'''
-		Benchmarking lustre file get with multiple access on multiple files
+		Benchmarking inputs with pattern `Multiple Files Multiple Readers`
 		
-		Files corresponding to each processes should be named after the pattern of file_name + rank
+		Each processes will access a single file within the same container exclusively.
 
 		param:
-		 file_name: File name
-		 section_limit: Limit of sections for each get operation in MiB
+		 container_name: source container
+		 directory_name: source directory
+		 file_name: source file base, source file name for each processes is composed of file_name + '{:0>5}'.format(__mpi_rank)
 
 		return:
 		 max_read: maximum read time
@@ -83,46 +72,21 @@ class CirrusLustreBench(object):
 		'''
 		proc_file_name = file_name + '{:0>5}'.format(self.__mpi_rank)
 
-		# Check sections to be get
-		file_size = os.path.getsize(proc_file_name)
-		file_size_in_mib = file_size >> 20 # in MiB
-		sectino_limit_in_bytes = section_limit << 20 # in bytes
-		section_count = file_size_in_mib // section_limit
-		if file_size_in_mib % section_limit:
-			section_count += 1
+		return self.bench_inputs_with_single_file_multiple_readers(container_name, directory_name, proc_file_name)
+	
 
-		# Get
-		MPI.COMM_WORLD.Barrier()
-		start = MPI.Wtime()
-		with open(proc_file_name, 'r') as f:
-			for _ in range(0, section_count):	
-				f.read(sectino_limit_in_bytes)
-		end = MPI.Wtime()
-		MPI.COMM_WORLD.Barrier()
-
-		return common.collect_bench_metrics(end - start, precision=5)
-
-	def bench_outputs_with_single_file(self, file_name, output_per_rank = 1024):
+	def bench_outputs_with_multiple_files_multiple_writers(self, container_name, directory_name, file_name, output_per_rank, data = None):
 		'''
-		Benchmarking lustre file write with multiple access on a single file
+		Benchmarking outputs with pattern `Multiple Files Multiple Writers`
 		
-		Data from different rank is stored in different ranges
+		Each processes will access a single file within the same container exclusively.
 
 		param:
-		 file_name: File name
-		 output_per_rank: size of outputs per rank, in MiB
-		'''
-		raise NameError('Unsupport pattern')
-
-	def bench_outputs_with_multiple_files(self, file_name, output_per_rank = 1024, data = None):
-		'''
-		Benchmarking lustre file write with multiple access
-		
-		Data from different rank is stored in different files
-
-		param:
-		 file_name: File name
-		 output_per_rank: size of outputs per rank, in MiB
+		 container_name: target container base
+		 directory_name: target directory
+		 file_name: target file base, target file name is composed of file_name + '{:0>5}'.format(__mpi_rank)
+		 output_per_rank: size of outputs per rank in MiB
+		 data: optional cached data for outputs
 		
 		return:
 		 max_write_time: maximum writing time
@@ -130,9 +94,10 @@ class CirrusLustreBench(object):
 		 avg_write_time: average writing time
 		'''
 		# Data prepare
-		output_per_rank_in_bytes = output_per_rank << 20
+		output_per_rank_in_bytes = output_per_rank << 20 # in bytes
 		if data == None:
-			data = bytes( self.__mpi_rank for i in range(0, output_per_rank_in_bytes) )
+			data = common.workload_generator(self.__mpi_rank, output_per_rank_in_bytes)
+
 		output_file_name = file_name + '{:0>5}'.format(self.__mpi_rank)
 
 		MPI.COMM_WORLD.Barrier()
@@ -142,4 +107,4 @@ class CirrusLustreBench(object):
 		end = MPI.Wtime()
 		MPI.COMM_WORLD.Barrier()
 
-		return common.collect_bench_metrics(end - start, precision=5)
+		return common.collect_bench_metrics(end - start, 5)
