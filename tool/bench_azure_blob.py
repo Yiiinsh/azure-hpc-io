@@ -22,15 +22,10 @@ class AzureBlobBench(BaseBench):
 	__slots__ = ('__bench_target', '__mpi_rank', '__mpi_size', '__storage_service')
 
 	def __init__(self, access_name, access_key, access_container_list):
-		super.__init__(access_name, access_key, access_container_list)
-
+		self.__mpi_rank = MPI.COMM_WORLD.Get_rank()
+		self.__mpi_size = MPI.COMM_WORLD.Get_size()
 		self.__bench_target = 'Azure Blob'
 		self.__storage_service = blob.BlockBlobService(account_name=access_name, account_key=access_key)
-
-		if not isinstance(access_container_list, list):
-			raise TypeError('access_container_list should be a list!')
-		for container in access_container_list:
-			self.__storage_service.get_container_acl(container)
 
 	def bench_inputs_with_single_file_multiple_readers(self, container_name, directory_name, file_name):
 		'''
@@ -57,7 +52,7 @@ class AzureBlobBench(BaseBench):
 		if blob_size_in_mib % self.SECTION_LIMIT:
 			section_count = section_count + 1
 
-		MPI.COMMWOR.Barrier()
+		MPI.COMM_WORLD.Barrier()
 		start = MPI.Wtime()
 		for section in range(0, section_count):
 			range_start = section * self.SECTION_LIMIT_IN_BYTES
@@ -69,7 +64,7 @@ class AzureBlobBench(BaseBench):
 			self.__storage_service.get_blob_to_bytes(container_name, file_name, start_range=range_start, end_range=range_end)
 			
 		end = MPI.Wtime()
-		MPI.COMMWOR.Barrier()
+		MPI.COMM_WORLD.Barrier()
 
 		return common.collect_bench_metrics(end - start)
 

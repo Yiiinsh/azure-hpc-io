@@ -22,15 +22,10 @@ class AzureFileBench(BaseBench):
 	__slots__ = ('__bench_target', '__mpi_rank', '__mpi_size', '__storage_service')
 
 	def __init__(self, access_name, access_key, access_container_list):
-		super.__init__(access_name, access_key, access_container_list)
-
+		self.__mpi_rank = MPI.COMM_WORLD.Get_rank()
+		self.__mpi_size = MPI.COMM_WORLD.Get_size()
 		self.__bench_target = 'Azure File'
 		self.__storage_service = file.FileService(access_name, access_key)
-
-		if not isinstance(access_container_list, list):
-			raise TypeError('access_container_list should be a list!')
-		for share in access_container_list:
-			self.__storage_service.get_share_acl(share)
 
 	def bench_inputs_with_single_file_multiple_readers(self, container_name, directory_name, file_name):
 		'''

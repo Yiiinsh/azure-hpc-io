@@ -33,16 +33,9 @@ def bench():
 	# Bench infos
 	account_name = config_azure['account_name']
 	account_key = config_azure['account_key']
-	input_container_name = config_azure['input_container_name']
-	input_share_name = config_azure['input_share_name']
-	input_directory_name = config_azure['input_directory_name']
-	input_blob_name = config_azure['input_blob_name']
-	input_file_name = config_azure['input_file_name']
-	output_container_name = config_azure['output_container_name']
-	output_share_name = config_azure['output_share_name']
-	output_directory_name = config_azure['output_directory_name']
-	output_blob_name = config_azure['output_blob_name']
-	output_file_name = config_azure['output_file_name']
+	container_name = config_azure['container_name']
+	directory_name = config_azure['directory_name']
+	file_name = config_azure['file_name']
 	output_per_rank = int(config_bench['output_per_rank'])
 
 	MPI.COMM_WORLD.Barrier()
@@ -53,9 +46,9 @@ def bench():
 
 	# Get tool
 	if bench_targets == 'azure_blob':
-		bench_tool = AzureBlobBench(account_name, account_key, [input_container_name])
+		bench_tool = AzureBlobBench(account_name, account_key, [container_name])
 	elif bench_targets == 'azure_file':
-		bench_tool = AzureFileBench(account_name, account_key, [input_share_name])
+		bench_tool = AzureFileBench(account_name, account_key, [container_name])
 	elif bench_targets == 'cirrus_lustre':
 		bench_tool = CirrusLustreBench()
 	else:
@@ -64,11 +57,15 @@ def bench():
 	if bench_items == 'input':
 		if bench_pattern == 'SFMR':
 			for _ in range(0, repeat_times):
-				max_time, min_time, avg_time = bench_tool.bench_inputs_with_single_file_multiple_readers(input_container_name, None, input_file_name)
+				max_time, min_time, avg_time = bench_tool.bench_inputs_with_single_file_multiple_readers(container_name, None, file_name)
 				__print_metrics(max_time, min_time, avg_time)
 		elif bench_pattern == 'MFMR':
 			for _ in range(0, repeat_times):
-				max_time, min_time, avg_time = bench_tool.bench_inputs_with_multiple_files_multiple_readers(input_container_name, None, input_file_name)
+				max_time, min_time, avg_time = bench_tool.bench_inputs_with_multiple_files_multiple_readers(container_name, None, file_name)
+				__print_metrics(max_time, min_time, avg_time)
+		elif bench_pattern == 'MFMRMC':
+			for _ in range(0, repeat_times):
+				max_time, min_time, avg_time = bench_tool.bench_inputs_with_multiple_files_multiple_readers_multiple_containers(container_name, None, file_name)
 				__print_metrics(max_time, min_time, avg_time)
 		else:
 			raise NotImplementedError()
@@ -76,12 +73,17 @@ def bench():
 		if bench_pattern == 'SFMW':
 			data = common.workload_generator(rank, output_per_rank << 20)
 			for _ in range(0, repeat_times):
-				max_time, min_time, avg_time, post_time = bench_tool.bench_outputs_with_single_file_multiple_writers(output_container_name, None, output_file_name, output_per_rank, data)
-				__print_metrics(max_time, min_time, avg_time, post_time)
+				max_time, min_time, avg_time = bench_tool.bench_outputs_with_single_file_multiple_writers(container_name, directory_name, file_name, output_per_rank, data)
+				__print_metrics(max_time, min_time, avg_time)
 		elif bench_pattern == 'MFMW':
 			data = common.workload_generator(rank, output_per_rank << 20)
 			for _ in range(0, repeat_times):
-				max_time, min_time, avg_time = bench_tool.bench_outputs_with_multiple_files_multiple_writers(output_container_name, None, output_file_name, output_per_rank, data = data)
+				max_time, min_time, avg_time = bench_tool.bench_outputs_with_multiple_files_multiple_writers(container_name, directory_name, file_name, output_per_rank, data = data)
+				__print_metrics(max_time, min_time, avg_time)
+		elif bench_pattern == 'MFMWMC':
+			data = common.workload_generator(rank, output_per_rank << 20)
+			for _ in range(0, repeat_times):
+				max_time, min_time, avg_time = bench_tool.bench_outputs_with_multiple_files_multiple_writers_multiple_containers(container_name, directory_name, file_name, output_per_rank, data = data)
 				__print_metrics(max_time, min_time, avg_time)
 		else:
 			raise NotImplementedError()
