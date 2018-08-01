@@ -140,6 +140,8 @@ class AzureBlobBench(BaseBench):
 		# Data prepare
 		if data == None:
 			data = common.workload_generator(self.__mpi_rank, self.BLOCK_LIMIT_IN_BYTES)
+		else:
+			data = data[0:self.BLOCK_LIMIT_IN_BYTES - 1]
 		last_block_data = data
 		block_count = output_per_rank // self.BLOCK_LIMIT
 		# Last block doesn't full
@@ -171,9 +173,9 @@ class AzureBlobBench(BaseBench):
 			end_postprocessing = MPI.Wtime()
 
 			postprocessing_time = end_postprocessing - start_postprocessing
-			max_write = max_write + postprocessing_time
-			min_write = min_write + postprocessing_time
-			avg_write = avg_write + postprocessing_time
+			max_write = round(max_write + postprocessing_time, 3)
+			min_write = round(min_write + postprocessing_time, 3)
+			avg_write = round(avg_write + postprocessing_time, 3)
 		
 		return max_write, min_write, avg_write
 

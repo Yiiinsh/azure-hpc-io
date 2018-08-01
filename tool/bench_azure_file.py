@@ -137,6 +137,8 @@ class AzureFileBench(BaseBench):
 		output_per_rank_in_bytes = output_per_rank << 20 # in bytes
 		if data == None:
 			data = common.workload_generator(self.__mpi_rank, self.FILE_CHUNK_LIMIT_IN_BYTES)
+		else:
+			data = data[0:self.FILE_CHUNK_LIMIT_IN_BYTES - 1]
 		data_last_chunk = data
 		chunk_count = output_per_rank // self.FILE_CHUNK_LIMIT
 		# Last chunk doesn't full
@@ -168,9 +170,9 @@ class AzureFileBench(BaseBench):
 		MPI.COMM_WORLD.Barrier()
 
 		max_write, min_write, avg_write = common.collect_bench_metrics(end - start)
-		max_write = max_write + create_time
-		min_write = min_write + create_time
-		avg_write = avg_write + create_time
+		max_write = round(max_write + create_time,3)	
+		min_write = round(min_write + create_time,3)
+		avg_write = round(avg_write + create_time,3)
 
 		return max_write, min_write, avg_write
 
@@ -231,4 +233,4 @@ class AzureFileBench(BaseBench):
 		'''
 		output_container_name = container_name + '{:0>5}'.format(self.__mpi_rank)
 
-		return self.bench_outputs_with_multiple_files_multiple_writers(output_container_name, directory_name, file_name, output_container_name, data)
+		return self.bench_outputs_with_multiple_files_multiple_writers(output_container_name, directory_name, file_name, output_per_rank, data)
