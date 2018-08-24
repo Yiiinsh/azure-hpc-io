@@ -4,12 +4,17 @@ Tools for investigating high performance parallel I/O on Azure's cloud-native st
 
 ## Project Structure
 
-## Usage
+## Basic Usage
 ```
 mpirun -n [number of procs] python3 bench.py
 ```
+**Note**: The corresponding configurations need to be provided to execute the script
 
-**Note**: all the related resources on Azure should be set up in advance.
+
+**Note**: If you are trying to run it manually, you should know: all the related resources on Azure should be set up in advance; the application should be submitted as tasks; the configurations on config.ini should be filled in in advance.
+
+For the convenience of use, a helper to set up Azure Cluster is provided. You can fill in the configuration and run the corresponding script functions to quickly setup Azure HPC clusters, upload source scripts and submit tasks.
+
 
 ## Specifications
 ### Azure Spec
